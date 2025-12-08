@@ -1,381 +1,52 @@
 {% extends 'base.html' %}
 
-{% block title %}My Requisitions - Beverage ERP{% endblock %}
+{% block title %}My Requisitions - Staff{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>MY REQUISITIONS</h1>
-        <p style="color: #666; margin-top: 10px;">Track the status of your beverage requests from submission to delivery.</p>
+        <p style="color: #666; margin-top: 10px;">Track your requests.</p>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-arrow-left"></i> BACK
-        </a>
-        <a href="{% url 'staff_requisition' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-plus-circle"></i> NEW REQUEST
-        </a>
+    <div>
+        <a href="{% url 'staff_requisition' %}" class="btn"><i class="fas fa-plus-circle"></i> NEW REQUEST</a>
     </div>
 </div>
 
-<!-- Stats Overview -->
-<div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-value">5</div>
-        <div class="stat-label">Approved</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-value">2</div>
-        <div class="stat-label">Pending</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
-            <i class="fas fa-truck"></i>
-        </div>
-        <div class="stat-value">3</div>
-        <div class="stat-label">Delivered</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
-            <i class="fas fa-times-circle"></i>
-        </div>
-        <div class="stat-value">0</div>
-        <div class="stat-label">Rejected</div>
-    </div>
-</div>
-
-<!-- Filter and Search -->
-<div class="card" style="margin-bottom: 30px;">
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <!-- Status Filter -->
-            <div>
-                <div class="form-label">STATUS</div>
-                <select class="form-control">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending Approval</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="processing">Processing</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-            </div>
-            
-            <!-- Date Range -->
-            <div>
-                <div class="form-label">FROM DATE</div>
-                <input type="date" class="form-control" value="2024-01-01">
-            </div>
-            
-            <div>
-                <div class="form-label">TO DATE</div>
-                <input type="date" class="form-control" value="2024-01-31">
-            </div>
-            
-            <!-- Search -->
-            <div>
-                <div class="form-label">SEARCH</div>
-                <div style="position: relative;">
-                    <input type="text" class="form-control" placeholder="Search by REQ ID..." style="padding-left: 45px;">
-                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666;"></i>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button class="btn" style="padding: 12px 24px; font-size: 13px; flex: 1;">
-                <i class="fas fa-filter"></i> APPLY FILTERS
-            </button>
-            <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-                <i class="fas fa-redo"></i> RESET
-            </button>
-            <button class="btn" style="padding: 12px 24px; font-size: 13px;">
-                <i class="fas fa-download"></i> EXPORT
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Requisitions Table -->
 <div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <i class="fas fa-history" style="margin-right: 10px;"></i> REQUISITION HISTORY
-        </div>
-        <div style="font-size: 13px; color: #666;">
-            Showing 10 of 25 total requisitions
-        </div>
-    </div>
-    <div class="card-body" style="padding: 0;">
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">REQ ID</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">DATE</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">ITEMS</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">TOTAL</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">STATUS</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">APPROVER</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Sample Requisitions with Different Statuses -->
-                    {% for req in sample_requisitions %}
-                    <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa';" onmouseout="this.style.background='white';">
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-001</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Jan 15, 2024</div>
-                            <div style="font-size: 12px; color: #666;">10:30 AM</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600;">5 items</div>
-                            <div style="font-size: 12px; color: #666;">25 units total</div>
-                        </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">$124.75</td>
-                        <td style="padding: 15px;">
-                            {% if req.status == 'approved' %}
-                            <span style="padding: 6px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">APPROVED</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Jan 16, 2024</div>
-                            {% elif req.status == 'pending' %}
-                            <span style="padding: 6px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border-radius: 0;">PENDING</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Waiting for approval</div>
-                            {% elif req.status == 'delivered' %}
-                            <span style="padding: 6px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">DELIVERED</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Jan 18, 2024</div>
-                            {% elif req.status == 'rejected' %}
-                            <span style="padding: 6px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">REJECTED</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Jan 16, 2024</div>
-                            {% else %}
-                            <span style="padding: 6px 12px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">PROCESSING</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">In progress</div>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">John Smith</div>
-                            <div style="font-size: 12px; color: #666;">Department Head</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; gap: 8px;">
-                                <button style="padding: 8px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                                {% if req.status == 'pending' %}
-                                <button style="padding: 8px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-times"></i> CANCEL
-                                </button>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    
-                    <!-- Default sample data -->
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-001</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Jan 15, 2024</div>
-                            <div style="font-size: 12px; color: #666;">10:30 AM</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600;">5 items</div>
-                            <div style="font-size: 12px; color: #666;">25 units total</div>
-                        </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">$124.75</td>
-                        <td style="padding: 15px;">
-                            <span style="padding: 6px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">APPROVED</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Jan 16, 2024</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">John Smith</div>
-                            <div style="font-size: 12px; color: #666;">Department Head</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; gap: 8px;">
-                                <button style="padding: 8px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-002</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Jan 16, 2024</div>
-                            <div style="font-size: 12px; color: #666;">2:15 PM</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600;">3 items</div>
-                            <div style="font-size: 12px; color: #666;">15 units total</div>
-                        </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">$45.50</td>
-                        <td style="padding: 15px;">
-                            <span style="padding: 6px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border-radius: 0;">PENDING</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Waiting for approval</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Sarah Johnson</div>
-                            <div style="font-size: 12px; color: #666;">Department Head</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; gap: 8px;">
-                                <button style="padding: 8px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                                <button style="padding: 8px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-times"></i> CANCEL
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-003</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Jan 10, 2024</div>
-                            <div style="font-size: 12px; color: #666;">9:45 AM</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600;">8 items</div>
-                            <div style="font-size: 12px; color: #666;">40 units total</div>
-                        </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">$189.20</td>
-                        <td style="padding: 15px;">
-                            <span style="padding: 6px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">DELIVERED</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">Jan 12, 2024</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Michael Brown</div>
-                            <div style="font-size: 12px; color: #666;">Management</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; gap: 8px;">
-                                <button style="padding: 8px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                                <button style="padding: 8px 12px; background: #00b894; color: white; border: none; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-print"></i> RECEIPT
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <tr>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-004</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">Jan 8, 2024</div>
-                            <div style="font-size: 12px; color: #666;">11:20 AM</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600;">4 items</div>
-                            <div style="font-size: 12px; color: #666;">20 units total</div>
-                        </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">$67.13</td>
-                        <td style="padding: 15px;">
-                            <span style="padding: 6px 12px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 600; border-radius: 0;">PROCESSING</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;">In Purchasing</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="font-weight: 600; font-size: 14px;">John Smith</div>
-                            <div style="font-size: 12px; color: #666;">Department Head</div>
-                        </td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; gap: 8px;">
-                                <button style="padding: 8px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <!-- Pagination -->
-    <div style="padding: 20px 30px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-size: 13px; color: #666;">
-            Page 1 of 3
-        </div>
-        <div style="display: flex; gap: 5px;">
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button style="padding: 8px 12px; background: #000; color: white; border: none; cursor: pointer;">1</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">2</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">3</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Status Legend -->
-<div class="card" style="margin-top: 30px;">
     <div class="card-body">
-        <h4 style="font-size: 16px; margin-bottom: 15px; color: #000;">STATUS LEGEND</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 24px; height: 24px; background: #fdcb6e; border-radius: 0;"></div>
-                <div>
-                    <div style="font-weight: 600; font-size: 14px;">Pending</div>
-                    <div style="font-size: 13px; color: #666;">Awaiting approval from Department Head</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 24px; height: 24px; background: #00b894; border-radius: 0;"></div>
-                <div>
-                    <div style="font-weight: 600; font-size: 14px;">Approved</div>
-                    <div style="font-size: 13px; color: #666;">Approved and ready for processing</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 24px; height: 24px; background: #6c5ce7; border-radius: 0;"></div>
-                <div>
-                    <div style="font-weight: 600; font-size: 14px;">Processing</div>
-                    <div style="font-size: 13px; color: #666;">In Purchasing or Warehouse queue</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 24px; height: 24px; background: #0984e3; border-radius: 0;"></div>
-                <div>
-                    <div style="font-weight: 600; font-size: 14px;">Delivered</div>
-                    <div style="font-size: 13px; color: #666;">Items delivered to department</div>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 24px; height: 24px; background: #ff6b6b; border-radius: 0;"></div>
-                <div>
-                    <div style="font-weight: 600; font-size: 14px;">Rejected/Cancelled</div>
-                    <div style="font-size: 13px; color: #666;">Request was rejected or cancelled</div>
-                </div>
-            </div>
-        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>REQ ID</th>
+                    <th>DATE</th>
+                    <th>DESTINATION</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requisitions %}
+                <tr>
+                    <td style="font-weight: bold; font-family: monospace;">{{ req.rf_number }}</td>
+                    <td>{{ req.date_created|date:"M d, Y" }}</td>
+                    <td>
+                        {% if req.route_destination == 'purchasing' %}
+                            <span style="color: #ff6b6b;">Purchasing (Stock Unavailable)</span>
+                        {% else %}
+                            <span style="color: #0984e3;">Warehouse</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="padding: 4px 8px; background: #eee; border-radius: 4px; font-size: 12px;">
+                            {{ req.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No requisitions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
