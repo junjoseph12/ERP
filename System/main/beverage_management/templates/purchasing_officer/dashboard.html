@@ -1,0 +1,670 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchasing Officer Dashboard - Beverage ERP{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>PURCHASING DASHBOARD</h1>
+        <p style="color: #666; margin-top: 10px;">Requisition processing, purchase orders, and supplier management</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <button class="btn" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-plus-circle"></i> CREATE PO
+        </button>
+        <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-bell"></i> NOTIFICATIONS ({{ pending_requisitions|default:"7" }})
+        </button>
+    </div>
+</div>
+
+<!-- Main Stats Grid -->
+<div class="stats-grid" style="margin-bottom: 50px;">
+    <!-- Pending Requisitions -->
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="stat-value">{{ pending_requisitions|default:"7" }}</div>
+        <div class="stat-label">Pending Requisitions</div>
+        <div style="margin-top: 15px; font-size: 13px; color: #666;">
+            <span style="color: #ff6b6b;">{{ high_priority_reqs|default:"3" }} high priority</span>
+        </div>
+    </div>
+    
+    <!-- Active Purchase Orders -->
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-value">{{ active_purchase_orders|default:"12" }}</div>
+        <div class="stat-label">Active POs</div>
+        <div style="margin-top: 15px; font-size: 13px; color: #666;">
+            <span style="color: #0984e3;">${{ po_total_value|default:"42,500" }} total</span>
+        </div>
+    </div>
+    
+    <!-- Awaiting Approval -->
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-value">{{ awaiting_approval|default:"3" }}</div>
+        <div class="stat-label">Awaiting Approval</div>
+        <div style="margin-top: 15px; font-size: 13px; color: #666;">
+            <span style="color: #fdcb6e;">{{ overdue_approvals|default:"1" }} overdue</span>
+        </div>
+    </div>
+    
+    <!-- Total Suppliers -->
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
+            <i class="fas fa-handshake"></i>
+        </div>
+        <div class="stat-value">{{ total_suppliers|default:"15" }}</div>
+        <div class="stat-label">Active Suppliers</div>
+        <div style="margin-top: 15px; font-size: 13px; color: #666;">
+            <span style="color: #00b894;">{{ preferred_suppliers|default:"8" }} preferred</span>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <!-- Left Column: Pending Requisitions -->
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <i class="fas fa-tasks" style="margin-right: 10px;"></i> PENDING REQUISITIONS
+            </div>
+            <a href="{% url 'purchasing_requisitions' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> VIEW ALL
+            </a>
+        </div>
+        <div class="card-body">
+            <!-- Requisition Status Summary -->
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="font-weight: 600; font-size: 14px;">Processing Progress</span>
+                    <span style="color: #666; font-size: 13px;">65% Complete</span>
+                </div>
+                <div style="height: 8px; background: #eee; border-radius: 0; overflow: hidden;">
+                    <div style="width: 65%; height: 100%; background: linear-gradient(90deg, #0984e3, #00b894);"></div>
+                </div>
+            </div>
+            
+            <!-- Requisition List -->
+            <div style="margin-bottom: 30px;">
+                <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">REQUIRE IMMEDIATE ATTENTION</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for req in requisitions_needing_attention %}
+                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">{{ req.id|default:"REQ-2024-0015" }}</div>
+                                <div style="font-size: 12px; color: #666;">{{ req.department|default:"Sales Department" }}</div>
+                            </div>
+                            <span style="padding: 4px 10px; background: 
+                                {% if req.urgency == 'High' %}#ff6b6b
+                                {% elif req.urgency == 'Medium' %}#fdcb6e
+                                {% else %}#0984e3
+                                {% endif %}; 
+                                color: {% if req.urgency == 'Medium' %}#000{% else %}white{% endif %}; 
+                                font-size: 11px; font-weight: 600;">
+                                {{ req.urgency|default:"HIGH" }}
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Items Requested</div>
+                                <div style="font-weight: 600; font-size: 13px;">{{ req.items|default:"8" }} items • {{ req.quantity|default:"45" }} units</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: #666;">Request Date</div>
+                                <div style="font-weight: 600; font-size: 13px;">{{ req.date|default:"Jan 15, 2024" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-eye"></i> REVIEW
+                            </button>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-file-invoice"></i> CREATE PO
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <!-- Default requisitions if no data -->
+                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">REQ-2024-0015</div>
+                                <div style="font-size: 12px; color: #666;">Sales Department</div>
+                            </div>
+                            <span style="padding: 4px 10px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">
+                                HIGH
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Items Requested</div>
+                                <div style="font-weight: 600; font-size: 13px;">8 items • 45 units</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: #666;">Request Date</div>
+                                <div style="font-weight: 600; font-size: 13px;">Jan 15, 2024</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-eye"></i> REVIEW
+                            </button>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-file-invoice"></i> CREATE PO
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">REQ-2024-0016</div>
+                                <div style="font-size: 12px; color: #666;">Marketing Department</div>
+                            </div>
+                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">
+                                MEDIUM
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Items Requested</div>
+                                <div style="font-weight: 600; font-size: 13px;">5 items • 25 units</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: #666;">Request Date</div>
+                                <div style="font-weight: 600; font-size: 13px;">Jan 14, 2024</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-eye"></i> REVIEW
+                            </button>
+                            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                                <i class="fas fa-file-invoice"></i> CREATE PO
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Requisition Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                <div>
+                    <div style="font-size: 24px; font-weight: 800; color: #ff6b6b;">{{ pending_requisitions|default:"7" }}</div>
+                    <div style="font-size: 12px; color: #666;">Pending</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: 800; color: #00b894;">{{ approved_requisitions|default:"18" }}</div>
+                    <div style="font-size: 12px; color: #666;">Approved</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px; font-weight: 800; color: #0984e3;">{{ processed_today|default:"5" }}</div>
+                    <div style="font-size: 12px; color: #666;">Today</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Supplier List -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-handshake" style="margin-right: 10px;"></i> SUPPLIER LIST
+        </div>
+        <div class="card-body">
+            <!-- Supplier Search -->
+            <div style="margin-bottom: 20px;">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Search suppliers..." 
+                           style="width: 100%; padding: 12px 16px 12px 45px; border: 2px solid #eee; font-size: 14px;">
+                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                </div>
+            </div>
+            
+            <!-- Supplier Performance -->
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="font-size: 14px; color: #666;">PERFORMANCE RATING</h4>
+                    <div style="display: flex; gap: 5px;">
+                        <span style="padding: 4px 8px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">Excellent</span>
+                        <span style="padding: 4px 8px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">Good</span>
+                        <span style="padding: 4px 8px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">Average</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Supplier Cards -->
+            <div style="display: flex; flex-direction: column; gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                {% for supplier in supplier_list %}
+                <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 5px;">{{ supplier.name|default:"Beverage Supply Co." }}</div>
+                            <div style="font-size: 12px; color: #666;">{{ supplier.contact|default:"John Smith | (555) 123-4567" }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="padding: 4px 10px; background: 
+                                {% if supplier.rating == 'Excellent' %}#00b894
+                                {% elif supplier.rating == 'Good' %}#0984e3
+                                {% else %}#fdcb6e
+                                {% endif %}; 
+                                color: {% if supplier.rating == 'Average' %}#000{% else %}white{% endif %}; 
+                                font-size: 11px; font-weight: 600;">
+                                {{ supplier.rating|default:"EXCELLENT" }}
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                                {{ supplier.last_order|default:"Jan 10, 2024" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <div style="font-size: 12px; color: #666;">Products</div>
+                            <div style="font-weight: 600; font-size: 13px;">{{ supplier.products|default:"Soft Drinks, Energy Drinks" }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #666;">On-time Rate</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #00b894;">{{ supplier.on_time_rate|default:"98%" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'purchasing_suppliers' %}" class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1; text-align: center;">
+                            <i class="fas fa-eye"></i> DETAILS
+                        </a>
+                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                            <i class="fas fa-envelope"></i> CONTACT
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Default suppliers if no data -->
+                <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 5px;">Beverage Supply Co.</div>
+                            <div style="font-size: 12px; color: #666;">John Smith | (555) 123-4567</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">
+                                EXCELLENT
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Jan 10, 2024</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <div style="font-size: 12px; color: #666;">Products</div>
+                            <div style="font-weight: 600; font-size: 13px;">Soft Drinks, Energy Drinks</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #666;">On-time Rate</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #00b894;">98%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'purchasing_suppliers' %}" class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1; text-align: center;">
+                            <i class="fas fa-eye"></i> DETAILS
+                        </a>
+                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                            <i class="fas fa-envelope"></i> CONTACT
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 5px;">Drinks Distributors</div>
+                            <div style="font-size: 12px; color: #666;">Sarah Johnson | (555) 987-6543</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">
+                                GOOD
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Jan 12, 2024</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <div style="font-size: 12px; color: #666;">Products</div>
+                            <div style="font-weight: 600; font-size: 13px;">Juices, Water, Sports Drinks</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #666;">On-time Rate</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #00b894;">92%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'purchasing_suppliers' %}" class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1; text-align: center;">
+                            <i class="fas fa-eye"></i> DETAILS
+                        </a>
+                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                            <i class="fas fa-envelope"></i> CONTACT
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card" style="border: 1px solid #eee; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 5px;">Refreshment Wholesale</div>
+                            <div style="font-size: 12px; color: #666;">Mike Wilson | (555) 456-7890</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">
+                                AVERAGE
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Jan 5, 2024</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <div style="font-size: 12px; color: #666;">Products</div>
+                            <div style="font-weight: 600; font-size: 13px;">Alcoholic Beverages, Mixers</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #666;">On-time Rate</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #ff6b6b;">78%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'purchasing_suppliers' %}" class="btn" style="padding: 8px 16px; font-size: 12px; flex: 1; text-align: center;">
+                            <i class="fas fa-eye"></i> DETAILS
+                        </a>
+                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; flex: 1;">
+                            <i class="fas fa-envelope"></i> CONTACT
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{% url 'purchasing_suppliers' %}" style="color: #000; font-weight: 600; font-size: 13px; text-decoration: none;">
+                    <i class="fas fa-list" style="margin-right: 8px;"></i> VIEW ALL SUPPLIERS
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Purchase Orders Section -->
+<div class="card" style="margin-bottom: 40px;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <i class="fas fa-file-invoice-dollar" style="margin-right: 10px;"></i> ACTIVE PURCHASE ORDERS
+        </div>
+        <a href="{% url 'purchasing_orders' %}" class="btn" style="padding: 8px 20px; font-size: 12px;">
+            <i class="fas fa-plus-circle"></i> CREATE NEW PO
+        </a>
+    </div>
+    <div class="card-body">
+        <div style="overflow-x: auto; margin-bottom: 30px;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>PO NUMBER</th>
+                        <th>SUPPLIER</th>
+                        <th>ITEMS</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS</th>
+                        <th>ORDER DATE</th>
+                        <th>ETA</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for po in active_po_list %}
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px;">{{ po.number|default:"PO-2024-0012" }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-building" style="color: #666;"></i>
+                                <span>{{ po.supplier|default:"Beverage Supply Co." }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>{{ po.items|default:"8" }} items</div>
+                            <div style="font-size: 12px; color: #666;">{{ po.quantity|default:"125" }} units</div>
+                        </td>
+                        <td style="font-weight: 600; color: #000;">${{ po.amount|default:"3,250" }}</td>
+                        <td>
+                            {% if po.status == 'Pending' %}
+                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span>
+                            {% elif po.status == 'Approved' %}
+                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
+                            {% elif po.status == 'Ordered' %}
+                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">ORDERED</span>
+                            {% elif po.status == 'Shipped' %}
+                            <span style="padding: 4px 10px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 600;">SHIPPED</span>
+                            {% elif po.status == 'Delivered' %}
+                            <span style="padding: 4px 10px; background: #00cec9; color: white; font-size: 11px; font-weight: 600;">DELIVERED</span>
+                            {% else %}
+                            <span style="padding: 4px 10px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">{{ po.status|default:"PROCESSING"|upper }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 13px;">{{ po.order_date|default:"Jan 10, 2024" }}</td>
+                        <td style="font-size: 13px;">{{ po.eta|default:"Jan 15, 2024" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                {% if po.status == 'Pending' %}
+                                <button style="padding: 6px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-check"></i> APPROVE
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <!-- Default purchase orders if no data -->
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0012</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-building" style="color: #666;"></i>
+                                <span>Beverage Supply Co.</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>8 items</div>
+                            <div style="font-size: 12px; color: #666;">125 units</div>
+                        </td>
+                        <td style="font-weight: 600; color: #000;">$3,250</td>
+                        <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span></td>
+                        <td style="font-size: 13px;">Jan 10, 2024</td>
+                        <td style="font-size: 13px;">Jan 15, 2024</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0013</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-building" style="color: #666;"></i>
+                                <span>Drinks Distributors</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>5 items</div>
+                            <div style="font-size: 12px; color: #666;">85 units</div>
+                        </td>
+                        <td style="font-weight: 600; color: #000;">$1,850</td>
+                        <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">ORDERED</span></td>
+                        <td style="font-size: 13px;">Jan 12, 2024</td>
+                        <td style="font-size: 13px;">Jan 17, 2024</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0014</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-building" style="color: #666;"></i>
+                                <span>Refreshment Wholesale</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>12 items</div>
+                            <div style="font-size: 12px; color: #666;">200 units</div>
+                        </td>
+                        <td style="font-weight: 600; color: #000;">$5,200</td>
+                        <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span></td>
+                        <td style="font-size: 13px;">Jan 14, 2024</td>
+                        <td style="font-size: 13px;">Jan 20, 2024</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                <button style="padding: 6px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-check"></i> APPROVE
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0015</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-building" style="color: #666;"></i>
+                                <span>Global Beverages</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>6 items</div>
+                            <div style="font-size: 12px; color: #666;">95 units</div>
+                        </td>
+                        <td style="font-weight: 600; color: #000;">$2,750</td>
+                        <td><span style="padding: 4px 10px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 600;">SHIPPED</span></td>
+                        <td style="font-size: 13px;">Jan 8, 2024</td>
+                        <td style="font-size: 13px;">Jan 13, 2024</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- PO Status Summary -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px;">
+            {% for status, count in po_status_summary.items %}
+            {% with 
+                '#636e72' if status == 'draft' else
+                '#fdcb6e' if status == 'pending' else
+                '#00b894' if status == 'approved' else
+                '#0984e3' if status == 'ordered' else
+                '#6c5ce7' if status == 'received' else
+                '#000' as status_color %}
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: {{ status_color }};">{{ count|default:"0" }}</div>
+                <div style="font-size: 12px; color: #666; text-transform: uppercase;">{{ status|default:"Status" }}</div>
+            </div>
+            {% empty %}
+            <!-- Default status summary if no data -->
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: #636e72;">2</div>
+                <div style="font-size: 12px; color: #666;">DRAFT</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: #fdcb6e;">3</div>
+                <div style="font-size: 12px; color: #666;">PENDING</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: #00b894;">5</div>
+                <div style="font-size: 12px; color: #666;">APPROVED</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: #0984e3;">4</div>
+                <div style="font-size: 12px; color: #666;">ORDERED</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: #6c5ce7;">8</div>
+                <div style="font-size: 12px; color: #666;">RECEIVED</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top: 40px;">
+    <h2 style="margin-bottom: 20px;">QUICK ACTIONS</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <a href="{% url 'purchasing_requisitions' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #ff6b6b; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Process Requisitions</h3>
+            <p style="color: #666; font-size: 13px;">Review and process pending requests</p>
+        </a>
+        
+        <a href="{% url 'purchasing_orders' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #0984e3; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Create Purchase Orders</h3>
+            <p style="color: #666; font-size: 13px;">Generate new purchase orders</p>
+        </a>
+        
+        <a href="{% url 'purchasing_suppliers' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #00b894; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Manage Suppliers</h3>
+            <p style="color: #666; font-size: 13px;">View and update supplier information</p>
+        </a>
+        
+        <a href="#" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #fdcb6e; color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Purchasing Reports</h3>
+            <p style="color: #666; font-size: 13px;">Generate procurement analytics</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

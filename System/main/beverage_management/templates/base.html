@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Beverage Management System{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #1a1a1a;
+            --accent: #333333;
+            --light: #f5f5f5;
+            --medium: #e0e0e0;
+            --dark: #111111;
+            --text: #222222;
+            --text-light: #666666;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Glass Morphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header - Modern Glass Header */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            height: 70px;
+        }
+        
+        /* Logo with Icon */
+        .logo-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo-icon:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite linear;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logo-main {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-light);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 0;
+            background: var(--light);
+            border-radius: 0;
+            padding: 4px;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 12px 24px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            background: transparent;
+            border: none;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            color: var(--primary);
+            background: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-link.active:before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 24px;
+            right: 24px;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        /* User Profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .user-avatar:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            animation: shine 3s infinite linear;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--primary);
+        }
+        
+        .user-role {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .logout-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--medium);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+        }
+        
+        .logout-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            position: relative;
+        }
+        
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Messages */
+        .messages-container {
+            position: fixed;
+            top: 90px;
+            right: 40px;
+            z-index: 999;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .message {
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+            background: white;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease-out;
+            transform-origin: top right;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .message.success {
+            border-left-color: #00b894;
+            background: linear-gradient(90deg, #ffffff, #f8fff9);
+        }
+        
+        .message.error {
+            border-left-color: #d63031;
+            background: linear-gradient(90deg, #ffffff, #fff9f9);
+        }
+        
+        .message.info {
+            border-left-color: #0984e3;
+            background: linear-gradient(90deg, #ffffff, #f8faff);
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--primary);
+        }
+        
+        h1 {
+            font-size: 42px;
+            letter-spacing: -1px;
+            margin-bottom: 24px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+        }
+        
+        h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--accent);
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border: none;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .card-header {
+            padding: 24px 30px;
+            border-bottom: 1px solid var(--medium);
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--medium);
+            background: white;
+            font-size: 15px;
+            color: var(--text);
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn:hover:before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            background: var(--dark);
+            border-color: var(--dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        /* Footer */
+        .app-footer {
+            background: var(--primary);
+            color: white;
+            padding: 40px 0 30px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+        
+        .footer-section h4 {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: #cccccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaaaaa;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            position: relative;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 20px;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header glass">
+            <div class="header-content">
+                <!-- Logo -->
+                <div class="logo-brand">
+                    <div class="logo-icon">B</div>
+                    <div class="logo-text">
+                        <div class="logo-main">BEVERAGE ERP</div>
+                        <div class="logo-sub">WAREHOUSE MANAGEMENT</div>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="nav-container">
+                    {% if user.is_authenticated %}
+                    <nav class="nav-menu">
+                        {% if user.role == 'admin' %}
+                            <div class="nav-item">
+                                <a href="{% url 'admin_dashboard' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'admin_users' %}" 
+                                class="nav-link {% if 'admin_user' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                                    <i class="fas fa-users"></i> Users
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'admin_settings' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+                                    <i class="fas fa-cog"></i> Settings
+                                </a>
+                            </div>
+                        {% elif user.role == 'warehouse_manager' %}
+                            <div class="nav-item">
+                                <a href="{% url 'warehouse_dashboard' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'warehouse_dashboard' %}active{% endif %}">
+                                    <i class="fas fa-warehouse"></i> Dashboard
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'warehouse_inventory' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'warehouse_inventory' %}active{% endif %}">
+                                    <i class="fas fa-boxes"></i> Inventory
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'warehouse_receiving' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'warehouse_receiving' %}active{% endif %}">
+                                    <i class="fas fa-truck-loading"></i> Receiving
+                                </a>
+                            </div>
+                        {% elif user.role == 'purchasing_officer' %}
+                            <div class="nav-item">
+                                <a href="{% url 'purchasing_dashboard' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'purchasing_dashboard' %}active{% endif %}">
+                                    <i class="fas fa-shopping-cart"></i> Dashboard
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'purchasing_requisitions' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'purchasing_requisitions' %}active{% endif %}">
+                                    <i class="fas fa-clipboard-list"></i> Requisitions
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'purchasing_orders' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'purchasing_orders' %}active{% endif %}">
+                                    <i class="fas fa-file-invoice"></i> Orders
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'purchasing_suppliers' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'purchasing_suppliers' %}active{% endif %}">
+                                    <i class="fas fa-handshake"></i> Suppliers
+                                </a>
+                            </div>
+                        {% elif user.role == 'staff' %}
+                            <div class="nav-item">
+                                <a href="{% url 'staff_dashboard' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+                                    <i class="fas fa-home"></i> Dashboard
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'staff_inventory' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'staff_inventory' %}active{% endif %}">
+                                    <i class="fas fa-search"></i> Browse
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'staff_requisition' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'staff_requisition' %}active{% endif %}">
+                                    <i class="fas fa-plus-circle"></i> Request
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a href="{% url 'staff_my_requisitions' %}" 
+                                class="nav-link {% if request.resolver_match.url_name == 'staff_my_requisitions' %}active{% endif %}">
+                                    <i class="fas fa-history"></i> History
+                                </a>
+                            </div>
+                        {% endif %}
+                    </nav>
+
+                    <!-- User Profile -->
+                    <div class="user-profile">
+                        <div class="user-avatar">
+                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="user-role">{{ user.get_role_display }}</div>
+                        </div>
+                        <a href="{% url 'logout' %}" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="fas fa-info-circle"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>System</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                        <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Modules</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-warehouse"></i> Inventory</a></li>
+                        <li><a href="#"><i class="fas fa-shopping-cart"></i> Purchasing</a></li>
+                        <li><a href="#"><i class="fas fa-truck"></i> Delivery</a></li>
+                        <li><a href="#"><i class="fas fa-chart-pie"></i> Reports</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-phone"></i> Contact</a></li>
+                        <li><a href="#"><i class="fas fa-file-alt"></i> Documentation</a></li>
+                        <li><a href="#"><i class="fas fa-video"></i> Tutorials</a></li>
+                        <li><a href="#"><i class="fas fa-headset"></i> Live Support</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-shield-alt"></i> Privacy</a></li>
+                        <li><a href="#"><i class="fas fa-file-contract"></i> Terms</a></li>
+                        <li><a href="#"><i class="fas fa-copyright"></i> Copyright</a></li>
+                        <li><a href="#"><i class="fas fa-balance-scale"></i> Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 Beverage ERP System v3.2.1 | Enterprise Warehouse Management Solution</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

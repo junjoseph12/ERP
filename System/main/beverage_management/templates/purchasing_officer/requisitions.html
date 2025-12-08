@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+
+{% block title %}Requisitions Management - Beverage ERP{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>REQUISITIONS MANAGEMENT</h1>
+        <p style="color: #666; margin-top: 10px;">Review, approve, and process beverage requisitions from departments</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <a href="{% url 'purchasing_dashboard' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-arrow-left"></i> BACK TO DASHBOARD
+        </a>
+        <button class="btn" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-download"></i> EXPORT
+        </button>
+    </div>
+</div>
+
+<!-- Filter and Search Section -->
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <!-- Status Filter -->
+            <div>
+                <div class="form-label">STATUS</div>
+                <select class="form-control">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="approved">Approved (Ready for PO)</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="processed">Processed (PO Created)</option>
+                    <option value="on_hold">On Hold</option>
+                </select>
+            </div>
+            
+            <!-- Department Filter -->
+            <div>
+                <div class="form-label">DEPARTMENT</div>
+                <select class="form-control">
+                    <option value="">All Departments</option>
+                    <option value="sales">Sales Department</option>
+                    <option value="marketing">Marketing Department</option>
+                    <option value="operations">Operations</option>
+                    <option value="hr">Human Resources</option>
+                    <option value="finance">Finance</option>
+                    <option value="it">IT Department</option>
+                </select>
+            </div>
+            
+            <!-- Urgency Filter -->
+            <div>
+                <div class="form-label">URGENCY</div>
+                <select class="form-control">
+                    <option value="">All Urgency Levels</option>
+                    <option value="high">High Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+            </div>
+            
+            <!-- Date Range -->
+            <div>
+                <div class="form-label">DATE RANGE</div>
+                <input type="date" class="form-control" value="2024-01-01">
+            </div>
+        </div>
+        
+        <!-- Search Bar -->
+        <div style="margin-top: 20px;">
+            <div class="form-label">SEARCH REQUISITIONS</div>
+            <div style="position: relative;">
+                <input type="text" class="form-control" placeholder="Search by REQ ID, requester name, or item..." style="padding-left: 45px;">
+                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="btn" style="padding: 12px 24px; font-size: 13px; flex: 1;">
+                <i class="fas fa-filter"></i> APPLY FILTERS
+            </button>
+            <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
+                <i class="fas fa-redo"></i> RESET
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Requisition Stats -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-value">7</div>
+        <div class="stat-label">Pending Review</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Approved for PO</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">PO Created</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
+            <i class="fas fa-pause-circle"></i>
+        </div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">On Hold</div>
+    </div>
+</div>
+
+<!-- Requisitions Table -->
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> REQUISITIONS LIST
+        </div>
+        <div style="font-size: 13px; color: #666;">
+            Showing 1-10 of 25 requisitions
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">REQ ID</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">REQUESTER</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">DEPARTMENT</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">ITEMS</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">TOTAL COST</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">STATUS</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">REQUEST DATE</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Requisitions -->
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-0015</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; font-size: 14px;">John Smith</div>
+                            <div style="font-size: 12px; color: #666;">Sales Manager</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; font-size: 12px; font-weight: 600;">Sales</span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600;">8 items</div>
+                            <div style="font-size: 12px; color: #666;">45 units</div>
+                        </td>
+                        <td style="padding: 15px; font-weight: 600; color: #000;">$245.50</td>
+                        <td style="padding: 15px;">
+                            <span style="padding: 6px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">PENDING</span>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">High Priority</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-size: 13px; font-weight: 600;">Jan 15, 2024</div>
+                            <div style="font-size: 12px; color: #666;">2 days ago</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button style="padding: 8px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> REVIEW
+                                </button>
+                                <button style="padding: 8px 12px; background: #00b894; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-check"></i> APPROVE
+                                </button>
+                                <button style="padding: 8px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-times"></i> REJECT
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-0014</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; font-size: 14px;">Sarah Johnson</div>
+                            <div style="font-size: 12px; color: #666;">Marketing Director</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #f3e5f5; color: #7b1fa2; padding: 4px 10px; font-size: 12px; font-weight: 600;">Marketing</span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600;">5 items</div>
+                            <div style="font-size: 12px; color: #666;">25 units</div>
+                        </td>
+                        <td style="padding: 15px; font-weight: 600; color: #000;">$128.75</td>
+                        <td style="padding: 15px;">
+                            <span style="padding: 6px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Ready for PO</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-size: 13px; font-weight: 600;">Jan 14, 2024</div>
+                            <div style="font-size: 12px; color: #666;">3 days ago</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button style="padding: 8px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                <button style="padding: 8px 12px; background: #6c5ce7; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-file-invoice"></i> CREATE PO
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-0013</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; font-size: 14px;">Mike Wilson</div>
+                            <div style="font-size: 12px; color: #666;">Office Manager</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #e8f5e9; color: #388e3c; padding: 4px 10px; font-size: 12px; font-weight: 600;">Operations</span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600;">3 items</div>
+                            <div style="font-size: 12px; color: #666;">15 units</div>
+                        </td>
+                        <td style="padding: 15px; font-weight: 600; color: #000;">$67.25</td>
+                        <td style="padding: 15px;">
+                            <span style="padding: 6px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">ON HOLD</span>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Awaiting budget</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-size: 13px; font-weight: 600;">Jan 13, 2024</div>
+                            <div style="font-size: 12px; color: #666;">4 days ago</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button style="padding: 8px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                <button style="padding: 8px 12px; background: #00b894; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-play"></i> RELEASE HOLD
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-0012</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; font-size: 14px;">Emma Davis</div>
+                            <div style="font-size: 12px; color: #666;">HR Manager</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #fff3e0; color: #f57c00; padding: 4px 10px; font-size: 12px; font-weight: 600;">HR</span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600;">12 items</div>
+                            <div style="font-size: 12px; color: #666;">60 units</div>
+                        </td>
+                        <td style="padding: 15px; font-weight: 600; color: #000;">$312.80</td>
+                        <td style="padding: 15px;">
+                            <span style="padding: 6px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">PROCESSED</span>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">PO Created</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-size: 13px; font-weight: 600;">Jan 10, 2024</div>
+                            <div style="font-size: 12px; color: #666;">1 week ago</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button style="padding: 8px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                <button style="padding: 8px 12px; background: #6c5ce7; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-external-link-alt"></i> VIEW PO
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 800; font-family: monospace;">REQ-2024-0011</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; font-size: 14px;">Robert Brown</div>
+                            <div style="font-size: 12px; color: #666;">IT Director</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="background: #e0f7fa; color: #006064; padding: 4px 10px; font-size: 12px; font-weight: 600;">IT</span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600;">4 items</div>
+                            <div style="font-size: 12px; color: #666;">20 units</div>
+                        </td>
+                        <td style="padding: 15px; font-weight: 600; color: #000;">$89.50</td>
+                        <td style="padding: 15px;">
+                            <span style="padding: 6px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">REJECTED</span>
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">Budget exceeded</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="font-size: 13px; font-weight: 600;">Jan 8, 2024</div>
+                            <div style="font-size: 12px; color: #666;">1 week ago</div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button style="padding: 8px 12px; background: #0984e3; color: white; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                                <button style="padding: 8px 12px; background: #fdcb6e; color: #000; border: none; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-redo"></i> REOPEN
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div style="padding: 20px 30px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 13px; color: #666;">
+            Page 1 of 3
+        </div>
+        <div style="display: flex; gap: 5px;">
+            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button style="padding: 8px 12px; background: #000; color: white; border: none; cursor: pointer;">1</button>
+            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">2</button>
+            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">3</button>
+            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="card" style="margin-top: 30px;">
+    <div class="card-header">
+        <i class="fas fa-tasks" style="margin-right: 10px;"></i> BULK ACTIONS
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div>
+                <div class="form-label">SELECT ACTION</div>
+                <select class="form-control">
+                    <option value="">Choose bulk action...</option>
+                    <option value="approve_selected">Approve Selected</option>
+                    <option value="create_po_selected">Create PO for Selected</option>
+                    <option value="place_on_hold">Place Selected On Hold</option>
+                    <option value="send_back">Send Back for Revision</option>
+                </select>
+            </div>
+            
+            <div>
+                <div class="form-label">APPLY TO</div>
+                <select class="form-control">
+                    <option value="">Select requisitions...</option>
+                    <option value="all_pending">All Pending Requisitions</option>
+                    <option value="all_approved">All Approved Requisitions</option>
+                    <option value="by_department">By Department</option>
+                    <option value="selected_only">Selected Rows Only</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; align-items: flex-end;">
+                <button class="btn" style="padding: 14px 30px; font-size: 13px; width: 100%;">
+                    <i class="fas fa-play"></i> EXECUTE BULK ACTION
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Workflow Guide -->
+<div class="card" style="margin-top: 30px;">
+    <div class="card-header">
+        <i class="fas fa-info-circle" style="margin-right: 10px;"></i> PROCESSING WORKFLOW
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+            <div>
+                <div style="width: 50px; height: 50px; background: #ff6b6b; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 50%;">
+                    1
+                </div>
+                <h4 style="font-size: 14px; margin-bottom: 8px;">Review Request</h4>
+                <p style="color: #666; font-size: 13px;">Check items, quantities, and department budget</p>
+            </div>
+            
+            <div>
+                <div style="width: 50px; height: 50px; background: #fdcb6e; color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 50%;">
+                    2
+                </div>
+                <h4 style="font-size: 14px; margin-bottom: 8px;">Approve/Reject</h4>
+                <p style="color: #666; font-size: 13px;">Approve if valid or reject with reason</p>
+            </div>
+            
+            <div>
+                <div style="width: 50px; height: 50px; background: #00b894; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 50%;">
+                    3
+                </div>
+                <h4 style="font-size: 14px; margin-bottom: 8px;">Select Supplier</h4>
+                <p style="color: #666; font-size: 13px;">Choose best supplier for approved items</p>
+            </div>
+            
+            <div>
+                <div style="width: 50px; height: 50px; background: #0984e3; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 50%;">
+                    4
+                </div>
+                <h4 style="font-size: 14px; margin-bottom: 8px;">Create PO</h4>
+                <p style="color: #666; font-size: 13px;">Generate purchase order for management approval</p>
+            </div>
+            
+            <div>
+                <div style="width: 50px; height: 50px; background: #6c5ce7; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 50%;">
+                    5
+                </div>
+                <h4 style="font-size: 14px; margin-bottom: 8px;">Send to Supplier</h4>
+                <p style="color: #666; font-size: 13px;">Send approved PO to selected supplier</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>USER MANAGEMENT</h1>
+        <p style="color: #666; margin-top: 10px;">Approve, reject, and manage system users</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <button class="btn" style="padding: 12px 24px; font-size: 13px;" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> REFRESH
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
+            <i class="fas fa-user-clock"></i>
+        </div>
+        <div class="stat-value">{{ pending_users }}</div>
+        <div class="stat-label">Pending Approval</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-value">{{ approved_users }}</div>
+        <div class="stat-label">Approved</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+            <i class="fas fa-user-times"></i>
+        </div>
+        <div class="stat-value">{{ rejected_users }}</div>
+        <div class="stat-label">Rejected</div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div style="margin-bottom: 30px;">
+    <div style="display: flex; border-bottom: 2px solid #eee;">
+        <a href="?status=pending" 
+           style="padding: 15px 30px; text-decoration: none; color: {% if status_filter == 'pending' %}#000{% else %}#666{% endif %}; 
+                  border-bottom: {% if status_filter == 'pending' %}3px solid #fdcb6e{% else %}none{% endif %}; 
+                  font-weight: {% if status_filter == 'pending' %}600{% else %}400{% endif %};">
+            <i class="fas fa-clock"></i> Pending ({{ pending_users }})
+        </a>
+        <a href="?status=approved" 
+           style="padding: 15px 30px; text-decoration: none; color: {% if status_filter == 'approved' %}#000{% else %}#666{% endif %}; 
+                  border-bottom: {% if status_filter == 'approved' %}3px solid #00b894{% else %}none{% endif %}; 
+                  font-weight: {% if status_filter == 'approved' %}600{% else %}400{% endif %};">
+            <i class="fas fa-check-circle"></i> Approved ({{ approved_users }})
+        </a>
+        <a href="?status=rejected" 
+           style="padding: 15px 30px; text-decoration: none; color: {% if status_filter == 'rejected' %}#000{% else %}#666{% endif %}; 
+                  border-bottom: {% if status_filter == 'rejected' %}3px solid #ff6b6b{% else %}none{% endif %}; 
+                  font-weight: {% if status_filter == 'rejected' %}600{% else %}400{% endif %};">
+            <i class="fas fa-times-circle"></i> Rejected ({{ rejected_users }})
+        </a>
+        <a href="?status=all" 
+           style="padding: 15px 30px; text-decoration: none; color: {% if status_filter == 'all' %}#000{% else %}#666{% endif %}; 
+                  border-bottom: {% if status_filter == 'all' %}3px solid #000{% else %}none{% endif %}; 
+                  font-weight: {% if status_filter == 'all' %}600{% else %}400{% endif %};">
+            <i class="fas fa-list"></i> All Users
+        </a>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <i class="fas fa-user-friends" style="margin-right: 10px;"></i> 
+            {% if status_filter == 'pending' %}
+            PENDING APPROVAL REQUESTS
+            {% elif status_filter == 'approved' %}
+            APPROVED USERS
+            {% elif status_filter == 'rejected' %}
+            REJECTED USERS
+            {% else %}
+            ALL SYSTEM USERS
+            {% endif %}
+        </div>
+        <div style="font-size: 14px; color: #666;">
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </div>
+    </div>
+    <div class="card-body">
+        {% if page_obj.object_list %}
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>USER</th>
+                        <th>ROLE</th>
+                        <th>DEPARTMENT</th>
+                        <th>REGISTERED</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_obj in page_obj %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: #000; color: white; 
+                                          display: flex; align-items: center; justify-content: center; 
+                                          font-size: 14px; font-weight: 600; border-radius: 50%;">
+                                    {{ user_obj.first_name|first|default:user_obj.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px;">
+                                        {{ user_obj.first_name|default:"-" }} {{ user_obj.last_name|default:"" }}
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">{{ user_obj.email }}</div>
+                                    <div style="font-size: 11px; color: #999;">@{{ user_obj.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size: 13px;">
+                            <span style="padding: 4px 10px; background: 
+                                {% if user_obj.role == 'admin' %}#000
+                                {% elif user_obj.role == 'warehouse_manager' %}#0984e3
+                                {% elif user_obj.role == 'purchasing_officer' %}#00b894
+                                {% else %}#636e72{% endif %}; 
+                                color: white; font-size: 11px; font-weight: 600;">
+                                {{ user_obj.get_role_display|upper }}
+                            </span>
+                        </td>
+                        <td style="font-size: 13px;">{{ user_obj.department|default:"-" }}</td>
+                        <td style="font-size: 13px; color: #666;">
+                            {{ user_obj.date_joined|date:"M d, Y" }}
+                        </td>
+                        <td>
+                            {% if user_obj.status == 'pending' %}
+                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">
+                                <i class="fas fa-clock"></i> PENDING
+                            </span>
+                            {% elif user_obj.status == 'approved' %}
+                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">
+                                <i class="fas fa-check"></i> APPROVED
+                            </span>
+                            {% elif user_obj.status == 'rejected' %}
+                            <span style="padding: 4px 10px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">
+                                <i class="fas fa-times"></i> REJECTED
+                            </span>
+                            {% elif user_obj.status == 'suspended' %}
+                            <span style="padding: 4px 10px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">
+                                <i class="fas fa-ban"></i> SUSPENDED
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                {% if user_obj.status == 'pending' %}
+                                <form method="post" action="{% url 'admin_approve_user' user_obj.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                        <i class="fas fa-check"></i> APPROVE
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'admin_reject_user' user_obj.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">
+                                        <i class="fas fa-times"></i> REJECT
+                                    </button>
+                                </form>
+                                {% elif user_obj.status == 'approved' %}
+                                <form method="post" action="{% url 'admin_suspend_user' user_obj.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">
+                                        <i class="fas fa-ban"></i> SUSPEND
+                                    </button>
+                                </form>
+                                {% elif user_obj.status == 'rejected' or user_obj.status == 'suspended' %}
+                                <form method="post" action="{% url 'admin_reactivate_user' user_obj.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                        <i class="fas fa-redo"></i> REACTIVATE
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{% url 'admin_user_detail' user_obj.id %}" 
+                                   class="btn" 
+                                   style="padding: 6px 12px; font-size: 11px; background: #636e72; color: white;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div style="display: flex; justify-content: center; margin-top: 30px;">
+            <div style="display: flex; gap: 10px;">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}" 
+                   class="btn" style="padding: 8px 16px; font-size: 13px;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="btn" style="padding: 8px 16px; font-size: 13px; background: #000; color: white;">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}&status={{ status_filter }}" 
+                       class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}" 
+                   class="btn" style="padding: 8px 16px; font-size: 13px;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div style="text-align: center; padding: 50px 0;">
+            <div style="width: 80px; height: 80px; background: #f8f9fa; color: #999; 
+                      display: flex; align-items: center; justify-content: center; 
+                      font-size: 32px; margin: 0 auto 20px; border-radius: 50%;">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 style="margin-bottom: 10px;">No Users Found</h3>
+            <p style="color: #666;">There are no users with the selected status.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top: 40px;">
+    <h2 style="margin-bottom: 20px;">QUICK ACTIONS</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <a href="?status=pending" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #fdcb6e; color: #000; display: flex; 
+                      align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Review Pending</h3>
+            <p style="color: #666; font-size: 13px;">{{ pending_users }} users awaiting approval</p>
+        </a>
+        
+        <a href="{% url 'admin_dashboard' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; 
+                      align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Dashboard</h3>
+            <p style="color: #666; font-size: 13px;">Return to main dashboard</p>
+        </a>
+        
+        <a href="#" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
+            <div style="width: 60px; height: 60px; background: #0984e3; color: white; display: flex; 
+                      align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
+                <i class="fas fa-file-export"></i>
+            </div>
+            <h3 style="font-size: 16px; margin-bottom: 10px;">Export Users</h3>
+            <p style="color: #666; font-size: 13px;">Export user list to CSV</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

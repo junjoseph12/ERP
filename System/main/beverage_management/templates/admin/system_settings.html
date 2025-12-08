@@ -1,0 +1,536 @@
+{% extends 'base.html' %}
+
+{% block title %}System Settings - Admin Dashboard{% endblock %}
+
+{% block content %}
+<!-- Settings Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>SYSTEM SETTINGS</h1>
+        <p style="color: #666; margin-top: 10px;">Configure system parameters and preferences</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <button class="btn" style="padding: 12px 24px; font-size: 13px;" onclick="document.getElementById('settings-form').submit()">
+            <i class="fas fa-save"></i> SAVE SETTINGS
+        </button>
+        <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> RELOAD
+        </button>
+    </div>
+</div>
+
+<!-- Settings Tabs -->
+<div style="margin-bottom: 30px;">
+    <div style="display: flex; border-bottom: 2px solid #eee;">
+        <button id="general-tab" onclick="showTab('general')" 
+                style="padding: 15px 30px; background: none; border: none; cursor: pointer; 
+                       color: #000; border-bottom: 3px solid #000; font-weight: 600;">
+            <i class="fas fa-cog"></i> General
+        </button>
+        <button id="security-tab" onclick="showTab('security')" 
+                style="padding: 15px 30px; background: none; border: none; cursor: pointer; 
+                       color: #666; font-weight: 400;">
+            <i class="fas fa-shield-alt"></i> Security
+        </button>
+        <button id="email-tab" onclick="showTab('email')" 
+                style="padding: 15px 30px; background: none; border: none; cursor: pointer; 
+                       color: #666; font-weight: 400;">
+            <i class="fas fa-envelope"></i> Email
+        </button>
+        <button id="notifications-tab" onclick="showTab('notifications')" 
+                style="padding: 15px 30px; background: none; border: none; cursor: pointer; 
+                       color: #666; font-weight: 400;">
+            <i class="fas fa-bell"></i> Notifications
+        </button>
+        <button id="advanced-tab" onclick="showTab('advanced')" 
+                style="padding: 15px 30px; background: none; border: none; cursor: pointer; 
+                       color: #666; font-weight: 400;">
+            <i class="fas fa-sliders-h"></i> Advanced
+        </button>
+    </div>
+</div>
+
+<form id="settings-form" method="post" action="{% url 'admin_settings' %}">
+    {% csrf_token %}
+    
+    <!-- General Settings Tab -->
+    <div id="general-settings" class="settings-tab">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-building" style="margin-right: 10px;"></i> COMPANY INFORMATION
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" name="company_name" class="form-control" 
+                               value="{{ settings.company_name|default:'Beverage ERP System' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Industry</label>
+                        <input type="text" name="industry" class="form-control" 
+                               value="{{ settings.industry|default:'Beverage Distribution' }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Company Address</label>
+                    <textarea name="company_address" class="form-control" rows="3">{{ settings.company_address|default:'123 Beverage Street, Suite 100' }}</textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" name="contact_email" class="form-control" 
+                               value="{{ settings.contact_email|default:'info@beverage-erp.com' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="text" name="contact_phone" class="form-control" 
+                               value="{{ settings.contact_phone|default:'+1 (555) 123-4567' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-flag" style="margin-right: 10px;"></i> REGIONAL SETTINGS
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Time Zone</label>
+                        <select name="timezone" class="form-control">
+                            <option value="America/New_York" {% if settings.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time (ET)</option>
+                            <option value="America/Chicago" {% if settings.timezone == 'America/Chicago' %}selected{% endif %}>Central Time (CT)</option>
+                            <option value="America/Denver" {% if settings.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time (MT)</option>
+                            <option value="America/Los_Angeles" {% if settings.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time (PT)</option>
+                            <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date Format</label>
+                        <select name="date_format" class="form-control">
+                            <option value="Y-m-d" {% if settings.date_format == 'Y-m-d' %}selected{% endif %}>YYYY-MM-DD (2024-01-15)</option>
+                            <option value="m/d/Y" {% if settings.date_format == 'm/d/Y' %}selected{% endif %}>MM/DD/YYYY (01/15/2024)</option>
+                            <option value="d/m/Y" {% if settings.date_format == 'd/m/Y' %}selected{% endif %}>DD/MM/YYYY (15/01/2024)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Currency</label>
+                        <select name="currency" class="form-control">
+                            <option value="USD" {% if settings.currency == 'USD' %}selected{% endif %}>US Dollar ($)</option>
+                            <option value="EUR" {% if settings.currency == 'EUR' %}selected{% endif %}>Euro (€)</option>
+                            <option value="GBP" {% if settings.currency == 'GBP' %}selected{% endif %}>British Pound (£)</option>
+                            <option value="CAD" {% if settings.currency == 'CAD' %}selected{% endif %}>Canadian Dollar (C$)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Language</label>
+                        <select name="language" class="form-control">
+                            <option value="en" {% if settings.language == 'en' %}selected{% endif %}>English</option>
+                            <option value="es" {% if settings.language == 'es' %}selected{% endif %}>Spanish</option>
+                            <option value="fr" {% if settings.language == 'fr' %}selected{% endif %}>French</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Security Settings Tab -->
+    <div id="security-settings" class="settings-tab" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-shield" style="margin-right: 10px;"></i> AUTHENTICATION & PASSWORD
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Password Expiration (Days)</label>
+                        <input type="number" name="password_expiry_days" class="form-control" 
+                               value="{{ settings.password_expiry_days|default:'90' }}" min="0">
+                        <small style="color: #666; font-size: 12px;">0 = Never expire</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Minimum Password Length</label>
+                        <input type="number" name="min_password_length" class="form-control" 
+                               value="{{ settings.min_password_length|default:'8' }}" min="6">
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" name="require_special_char" id="require_special_char" 
+                               {% if settings.require_special_char %}checked{% endif %}>
+                        <label for="require_special_char" style="font-weight: 600;">Require special characters in passwords</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" name="require_numbers" id="require_numbers" 
+                               {% if settings.require_numbers %}checked{% endif %}>
+                        <label for="require_numbers" style="font-weight: 600;">Require numbers in passwords</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="prevent_password_reuse" id="prevent_password_reuse" 
+                               {% if settings.prevent_password_reuse %}checked{% endif %}>
+                        <label for="prevent_password_reuse" style="font-weight: 600;">Prevent password reuse (last 5 passwords)</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Failed Login Attempts Before Lockout</label>
+                    <input type="number" name="max_login_attempts" class="form-control" 
+                           value="{{ settings.max_login_attempts|default:'5' }}" min="1">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-lock" style="margin-right: 10px;"></i> SESSION MANAGEMENT
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Session Timeout (Minutes)</label>
+                        <input type="number" name="session_timeout" class="form-control" 
+                               value="{{ settings.session_timeout|default:'30' }}" min="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Concurrent Sessions</label>
+                        <input type="number" name="max_concurrent_sessions" class="form-control" 
+                               value="{{ settings.max_concurrent_sessions|default:'3' }}" min="1">
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="force_logout_on_password_change" id="force_logout_on_password_change" 
+                               {% if settings.force_logout_on_password_change %}checked{% endif %}>
+                        <label for="force_logout_on_password_change" style="font-weight: 600;">Force logout on password change</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Email Settings Tab -->
+    <div id="email-settings" class="settings-tab" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-server" style="margin-right: 10px;"></i> EMAIL SERVER CONFIGURATION
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">SMTP Host</label>
+                        <input type="text" name="smtp_host" class="form-control" 
+                               value="{{ settings.smtp_host|default:'smtp.gmail.com' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">SMTP Port</label>
+                        <input type="number" name="smtp_port" class="form-control" 
+                               value="{{ settings.smtp_port|default:'587' }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">SMTP Username</label>
+                    <input type="text" name="smtp_username" class="form-control" 
+                           value="{{ settings.smtp_username|default:'noreply@beverage-erp.com' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">SMTP Password</label>
+                    <input type="password" name="smtp_password" class="form-control" 
+                           placeholder="Enter SMTP password">
+                    <small style="color: #666; font-size: 12px;">Leave blank to keep current password</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" name="smtp_use_tls" id="smtp_use_tls" 
+                                   {% if settings.smtp_use_tls %}checked{% endif %}>
+                            <label for="smtp_use_tls" style="font-weight: 600;">Use TLS</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" name="smtp_use_ssl" id="smtp_use_ssl" 
+                                   {% if settings.smtp_use_ssl %}checked{% endif %}>
+                            <label for="smtp_use_ssl" style="font-weight: 600;">Use SSL</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-envelope-open-text" style="margin-right: 10px;"></i> EMAIL TEMPLATES
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">From Email Address</label>
+                    <input type="email" name="from_email" class="form-control" 
+                           value="{{ settings.from_email|default:'noreply@beverage-erp.com' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Registration Email Subject</label>
+                    <input type="text" name="registration_email_subject" class="form-control" 
+                           value="{{ settings.registration_email_subject|default:'Welcome to Beverage ERP System' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password Reset Email Subject</label>
+                    <input type="text" name="password_reset_email_subject" class="form-control" 
+                           value="{{ settings.password_reset_email_subject|default:'Password Reset Request' }}">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notifications Settings Tab -->
+    <div id="notifications-settings" class="settings-tab" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bell" style="margin-right: 10px;"></i> NOTIFICATION PREFERENCES
+            </div>
+            <div class="card-body">
+                <h4 style="margin-bottom: 20px; color: #666; font-size: 14px;">System Notifications</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <label style="font-weight: 600;">Low Stock Alerts</label>
+                            <input type="checkbox" name="notify_low_stock" id="notify_low_stock" 
+                                   {% if settings.notify_low_stock %}checked{% endif %}>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Send alerts when inventory falls below threshold</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <label style="font-weight: 600;">New User Registrations</label>
+                            <input type="checkbox" name="notify_new_users" id="notify_new_users" 
+                                   {% if settings.notify_new_users %}checked{% endif %}>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Notify admins of new user registrations</small>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <label style="font-weight: 600;">Purchase Order Approvals</label>
+                            <input type="checkbox" name="notify_po_approvals" id="notify_po_approvals" 
+                                   {% if settings.notify_po_approvals %}checked{% endif %}>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Notify when POs need approval</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <label style="font-weight: 600;">Delivery Status Updates</label>
+                            <input type="checkbox" name="notify_delivery_updates" id="notify_delivery_updates" 
+                                   {% if settings.notify_delivery_updates %}checked{% endif %}>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Notify about delivery status changes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-sliders-h" style="margin-right: 10px;"></i> NOTIFICATION CHANNELS
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Email Notifications</label>
+                        <select name="email_notifications" class="form-control">
+                            <option value="immediate" {% if settings.email_notifications == 'immediate' %}selected{% endif %}>Immediate</option>
+                            <option value="daily_digest" {% if settings.email_notifications == 'daily_digest' %}selected{% endif %}>Daily Digest</option>
+                            <option value="disabled" {% if settings.email_notifications == 'disabled' %}selected{% endif %}>Disabled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">In-App Notifications</label>
+                        <select name="inapp_notifications" class="form-control">
+                            <option value="enabled" {% if settings.inapp_notifications == 'enabled' %}selected{% endif %}>Enabled</option>
+                            <option value="disabled" {% if settings.inapp_notifications == 'disabled' %}selected{% endif %}>Disabled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Advanced Settings Tab -->
+    <div id="advanced-settings" class="settings-tab" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-database" style="margin-right: 10px;"></i> DATABASE & BACKUP
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Backup Frequency</label>
+                        <select name="backup_frequency" class="form-control">
+                            <option value="daily" {% if settings.backup_frequency == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if settings.backup_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if settings.backup_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="disabled" {% if settings.backup_frequency == 'disabled' %}selected{% endif %}>Disabled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Backup Retention (Days)</label>
+                        <input type="number" name="backup_retention_days" class="form-control" 
+                               value="{{ settings.backup_retention_days|default:'30' }}" min="1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Backup Storage Path</label>
+                    <input type="text" name="backup_path" class="form-control" 
+                           value="{{ settings.backup_path|default:'/backups/' }}">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-tools" style="margin-right: 10px;"></i> MAINTENANCE MODE
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div>
+                            <label style="font-weight: 600; display: block;">Enable Maintenance Mode</label>
+                            <small style="color: #666; font-size: 12px;">Restrict access to admin users only</small>
+                        </div>
+                        <input type="checkbox" name="maintenance_mode" id="maintenance_mode" 
+                               {% if settings.maintenance_mode %}checked{% endif %}>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Maintenance Message</label>
+                    <textarea name="maintenance_message" class="form-control" rows="3">{{ settings.maintenance_message|default:'System is currently under maintenance. Please try again later.' }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <i class="fas fa-code" style="margin-right: 10px;"></i> DEBUG & LOGGING
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">Debug Mode</label>
+                        <select name="debug_mode" class="form-control">
+                            <option value="enabled" {% if settings.debug_mode %}selected{% endif %}>Enabled</option>
+                            <option value="disabled" {% if not settings.debug_mode %}selected{% endif %}>Disabled</option>
+                        </select>
+                        <small style="color: #666; font-size: 12px;">Enable only for development</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Log Level</label>
+                        <select name="log_level" class="form-control">
+                            <option value="DEBUG" {% if settings.log_level == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                            <option value="INFO" {% if settings.log_level == 'INFO' %}selected{% endif %}>INFO</option>
+                            <option value="WARNING" {% if settings.log_level == 'WARNING' %}selected{% endif %}>WARNING</option>
+                            <option value="ERROR" {% if settings.log_level == 'ERROR' %}selected{% endif %}>ERROR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Danger Zone -->
+<div class="card" style="margin-top: 40px; border: 2px solid #ff6b6b;">
+    <div class="card-header" style="background: #fff5f5; color: #ff6b6b;">
+        <i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i> DANGER ZONE
+    </div>
+    <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="margin-bottom: 5px; color: #ff6b6b;">Clear All Cache</h4>
+                <p style="color: #666; font-size: 13px;">Clear all cached data including sessions and temporary files</p>
+            </div>
+            <button type="button" class="btn" style="background: #ff6b6b; color: white; padding: 10px 20px; font-size: 13px;">
+                <i class="fas fa-trash"></i> CLEAR CACHE
+            </button>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin-bottom: 5px; color: #ff6b6b;">Reset All Settings</h4>
+                    <p style="color: #666; font-size: 13px;">Reset all settings to default values. This action cannot be undone.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" style="border-color: #ff6b6b; color: #ff6b6b; padding: 10px 20px; font-size: 13px;">
+                    <i class="fas fa-undo"></i> RESET SETTINGS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-tab {
+        display: block;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    function showTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        
+        // Remove active class from all tab buttons
+        document.querySelectorAll('[id$="-tab"]').forEach(button => {
+            button.style.color = '#666';
+            button.style.borderBottom = 'none';
+            button.style.fontWeight = '400';
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-settings').style.display = 'block';
+        
+        // Add active class to selected tab button
+        document.getElementById(tabName + '-tab').style.color = '#000';
+        document.getElementById(tabName + '-tab').style.borderBottom = '3px solid #000';
+        document.getElementById(tabName + '-tab').style.fontWeight = '600';
+    }
+    
+    // Initialize with first tab active
+    document.addEventListener('DOMContentLoaded', function() {
+        showTab('general');
+    });
+</script>
+{% endblock %}

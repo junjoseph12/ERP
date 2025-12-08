@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Beverage ERP - Enterprise Management System{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 60px 0;">
+    <!-- Hero Section -->
+    <div style="text-align: center; margin-bottom: 80px;">
+        <h1 style="font-size: 56px; letter-spacing: -2px; margin-bottom: 20px;">
+            BEVERAGE <span style="color: #333;">ERP</span>
+        </h1>
+        <p style="font-size: 20px; color: #666; margin-bottom: 40px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            Enterprise-grade warehouse management solution for beverage distribution and inventory control
+        </p>
+        
+        <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 60px;">
+            <a href="{% url 'login' %}" class="btn" style="padding: 16px 40px; font-size: 16px;">
+                <i class="fas fa-sign-in-alt"></i> SYSTEM LOGIN
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-secondary" style="padding: 16px 40px; font-size: 16px;">
+                <i class="fas fa-user-plus"></i> REQUEST ACCESS
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <h2 style="text-align: center; margin-bottom: 50px;">ENTERPRISE FEATURES</h2>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-warehouse" style="margin-right: 10px;"></i> INVENTORY MANAGEMENT
+            </div>
+            <div class="card-body">
+                <p style="color: #666; margin-bottom: 20px;">Real-time tracking of all beverage stock with automated reorder points and expiry alerts.</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Real-time stock monitoring</span>
+                    </li>
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Automated reorder alerts</span>
+                    </li>
+                    <li style="display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Expiry date tracking</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-shopping-cart" style="margin-right: 10px;"></i> PROCUREMENT SYSTEM
+            </div>
+            <div class="card-body">
+                <p style="color: #666; margin-bottom: 20px;">Streamlined purchasing workflow from requisition to purchase order and supplier management.</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Multi-level approval workflow</span>
+                    </li>
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Supplier performance tracking</span>
+                    </li>
+                    <li style="display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Purchase order automation</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-truck" style="margin-right: 10px;"></i> DELIVERY MANAGEMENT
+            </div>
+            <div class="card-body">
+                <p style="color: #666; margin-bottom: 20px;">Complete tracking of incoming and outgoing shipments with digital documentation.</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Delivery scheduling</span>
+                    </li>
+                    <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Receiving verification</span>
+                    </li>
+                    <li style="display: flex; align-items: center;">
+                        <i class="fas fa-check" style="color: #00b894; margin-right: 10px;"></i>
+                        <span>Digital documentation</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div style="margin: 80px 0;">
+        <h2 style="text-align: center; margin-bottom: 50px;">SYSTEM OVERVIEW</h2>
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">4</div>
+                <div class="stat-label">User Roles</div>
+            </div>
+            
+            <div class="card stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-value">8</div>
+                <div class="stat-label">Modules</div>
+            </div>
+            
+            <div class="card stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+            
+            <div class="card stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Secure</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role-Based Access -->
+    <div style="margin-top: 80px;">
+        <h2 style="text-align: center; margin-bottom: 50px;">ROLE-BASED ACCESS CONTROL</h2>
+        <div class="dashboard-grid">
+            <div class="card" style="text-align: center;">
+                <div class="card-header" style="justify-content: center;">
+                    <i class="fas fa-crown" style="margin-right: 10px;"></i> ADMIN
+                </div>
+                <div class="card-body">
+                    <div style="font-size: 48px; margin-bottom: 20px;">👑</div>
+                    <p style="color: #666; margin-bottom: 20px;">Full system control and user management</p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li style="margin-bottom: 8px;">• System Configuration</li>
+                        <li style="margin-bottom: 8px;">• User Management</li>
+                        <li style="margin-bottom: 8px;">• Audit Logs</li>
+                        <li>• Global Settings</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <div class="card-header" style="justify-content: center;">
+                    <i class="fas fa-warehouse" style="margin-right: 10px;"></i> WAREHOUSE
+                </div>
+                <div class="card-body">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📦</div>
+                    <p style="color: #666; margin-bottom: 20px;">Inventory control and receiving operations</p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li style="margin-bottom: 8px;">• Stock Management</li>
+                        <li style="margin-bottom: 8px;">• Receiving Operations</li>
+                        <li style="margin-bottom: 8px;">• Shipment Processing</li>
+                        <li>• Space Utilization</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <div class="card-header" style="justify-content: center;">
+                    <i class="fas fa-shopping-cart" style="margin-right: 10px;"></i> PURCHASING
+                </div>
+                <div class="card-body">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+                    <p style="color: #666; margin-bottom: 20px;">Procurement and supplier management</p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li style="margin-bottom: 8px;">• Purchase Orders</li>
+                        <li style="margin-bottom: 8px;">• Supplier Management</li>
+                        <li style="margin-bottom: 8px;">• Requisition Processing</li>
+                        <li>• Cost Analysis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <div class="card-header" style="justify-content: center;">
+                    <i class="fas fa-user-tie" style="margin-right: 10px;"></i> STAFF
+                </div>
+                <div class="card-body">
+                    <div style="font-size: 48px; margin-bottom: 20px;">👨‍💼</div>
+                    <p style="color: #666; margin-bottom: 20px;">Requisition and inventory viewing</p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li style="margin-bottom: 8px;">• Inventory Browsing</li>
+                        <li style="margin-bottom: 8px;">• Requisition Submission</li>
+                        <li style="margin-bottom: 8px;">• Request Tracking</li>
+                        <li>• Stock Availability</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div style="text-align: center; margin-top: 80px; padding: 60px; background: linear-gradient(135deg, #000000, #1a1a1a); color: white; border-radius: 0;">
+        <h2 style="color: white; margin-bottom: 20px;">READY TO OPTIMIZE YOUR BEVERAGE MANAGEMENT?</h2>
+        <p style="color: #cccccc; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Join hundreds of enterprises that have streamlined their beverage distribution with our ERP system.
+        </p>
+        <a href="{% url 'register' %}" class="btn" style="background: white; color: #000; border-color: white;">
+            <i class="fas fa-rocket"></i> GET STARTED NOW
+        </a>
+    </div>
+</div>
+{% endblock %}

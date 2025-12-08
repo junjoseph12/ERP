@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Beverage ERP System{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto; padding: 40px 0;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 42px; margin-bottom: 15px;">
+            <i class="fas fa-user-plus" style="margin-right: 15px;"></i>ACCOUNT REGISTRATION
+        </h1>
+        <p style="color: #666; font-size: 18px; max-width: 600px; margin: 0 auto;">
+            Request access to the Beverage ERP System. Accounts require administrator approval.
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-id-card" style="margin-right: 10px;"></i> USER INFORMATION
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="message error" style="margin-bottom: 30px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {% for error in form.non_field_errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Personal Information -->
+                <h3 style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
+                    <i class="fas fa-user" style="margin-right: 10px;"></i> Personal Details
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user-tag" style="margin-right: 8px;"></i> USERNAME
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" 
+                                   name="{{ form.username.name }}" 
+                                   id="{{ form.username.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="Enter username"
+                                   value="{{ form.username.value|default:'' }}"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-at" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                        {% if form.username.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-envelope" style="margin-right: 8px;"></i> EMAIL ADDRESS
+                        </label>
+                        <div style="position: relative;">
+                            <input type="email" 
+                                   name="{{ form.email.name }}" 
+                                   id="{{ form.email.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="corporate.email@company.com"
+                                   value="{{ form.email.value|default:'' }}"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-envelope" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                        {% if form.email.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.email.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-signature" style="margin-right: 8px;"></i> FIRST NAME
+                        </label>
+                        <input type="text" 
+                               name="{{ form.first_name.name }}" 
+                               id="{{ form.first_name.id_for_label }}"
+                               class="form-control"
+                               placeholder="First name"
+                               value="{{ form.first_name.value|default:'' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-signature" style="margin-right: 8px;"></i> LAST NAME
+                        </label>
+                        <input type="text" 
+                               name="{{ form.last_name.name }}" 
+                               id="{{ form.last_name.id_for_label }}"
+                               class="form-control"
+                               placeholder="Last name"
+                               value="{{ form.last_name.value|default:'' }}">
+                    </div>
+                </div>
+                
+                <!-- System Access -->
+                <h3 style="margin: 40px 0 25px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
+                    <i class="fas fa-key" style="margin-right: 10px;"></i> System Access
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user-tag" style="margin-right: 8px;"></i> SYSTEM ROLE
+                        </label>
+                        <div style="position: relative;">
+                            <select name="{{ form.role.name }}" 
+                                    id="{{ form.role.id_for_label }}"
+                                    class="form-control"
+                                    style="padding-left: 45px; appearance: none; background: white;">
+                                {% for value, label in form.role.field.choices %}
+                                <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <i class="fas fa-briefcase" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999; pointer-events: none;"></i>
+                        </div>
+                        {% if form.role.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.role.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-building" style="margin-right: 8px;"></i> DEPARTMENT
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" 
+                                   name="{{ form.department.name }}" 
+                                   id="{{ form.department.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="e.g., Sales, Operations, IT"
+                                   value="{{ form.department.value|default:'' }}"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-sitemap" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-phone" style="margin-right: 8px;"></i> PHONE NUMBER
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" 
+                                   name="{{ form.phone.name }}" 
+                                   id="{{ form.phone.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="+1 (555) 123-4567"
+                                   value="{{ form.phone.value|default:'' }}"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-mobile-alt" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security -->
+                <h3 style="margin: 40px 0 25px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
+                    <i class="fas fa-shield-alt" style="margin-right: 10px;"></i> Security
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-lock" style="margin-right: 8px;"></i> PASSWORD
+                        </label>
+                        <div style="position: relative;">
+                            <input type="password" 
+                                   name="{{ form.password1.name }}" 
+                                   id="{{ form.password1.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="Create secure password"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-key" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                        {% if form.password1.help_text %}
+                        <div class="helptext">{{ form.password1.help_text }}</div>
+                        {% endif %}
+                        {% if form.password1.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.password1.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-lock" style="margin-right: 8px;"></i> CONFIRM PASSWORD
+                        </label>
+                        <div style="position: relative;">
+                            <input type="password" 
+                                   name="{{ form.password2.name }}" 
+                                   id="{{ form.password2.id_for_label }}"
+                                   class="form-control"
+                                   placeholder="Confirm password"
+                                   style="padding-left: 45px;">
+                            <i class="fas fa-key" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        </div>
+                        {% if form.password2.help_text %}
+                        <div class="helptext">{{ form.password2.help_text }}</div>
+                        {% endif %}
+                        {% if form.password2.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.password2.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Submit -->
+                <div style="text-align: center; margin-top: 50px;">
+                    <button type="submit" class="btn" style="padding: 18px 50px; font-size: 16px;">
+                        <i class="fas fa-paper-plane"></i> SUBMIT REGISTRATION REQUEST
+                    </button>
+                    <p style="color: #666; font-size: 14px; margin-top: 20px;">
+                        Your request will be reviewed by system administrator. You'll receive an email notification once approved.
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee;">
+                    <p style="color: #666; font-size: 14px;">
+                        Already have an account? 
+                        <a href="{% url 'login' %}" style="font-weight: 700; color: #000; text-decoration: none;">
+                            <i class="fas fa-sign-in-alt"></i> LOGIN HERE
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Role Information -->
+    <div class="card" style="margin-top: 40px;">
+        <div class="card-header">
+            <i class="fas fa-info-circle" style="margin-right: 10px;"></i> ROLE INFORMATION
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h4 style="font-size: 16px; margin-bottom: 10px;">ADMIN</h4>
+                    <p style="color: #666; font-size: 13px;">Full system access, user management, and configuration privileges.</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <h4 style="font-size: 16px; margin-bottom: 10px;">WAREHOUSE MANAGER</h4>
+                    <p style="color: #666; font-size: 13px;">Inventory control, receiving operations, and shipment management.</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h4 style="font-size: 16px; margin-bottom: 10px;">PURCHASING OFFICER</h4>
+                    <p style="color: #666; font-size: 13px;">Procurement, supplier management, and purchase order processing.</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h4 style="font-size: 16px; margin-bottom: 10px;">STAFF</h4>
+                    <p style="color: #666; font-size: 13px;">Inventory viewing, requisition submission, and request tracking.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

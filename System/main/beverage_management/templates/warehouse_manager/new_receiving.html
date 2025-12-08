@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block title %}New Receiving - Warehouse Dashboard{% endblock %}
+
+{% block content %}
+<!-- New Receiving Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>NEW RECEIVING</h1>
+        <p style="color: #666; margin-top: 10px;">Record incoming delivery and update inventory</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <a href="{% url 'warehouse_receiving' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-arrow-left"></i> BACK
+        </a>
+        <button type="submit" form="receivingForm" class="btn" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-save"></i> SAVE RECEIVING
+        </button>
+    </div>
+</div>
+
+<!-- Receiving Form -->
+<form id="receivingForm" method="POST">
+    {% csrf_token %}
+    
+    <!-- Two Column Layout -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+        <!-- Left Column: Delivery Information -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-truck" style="margin-right: 10px;"></i> DELIVERY INFORMATION
+            </div>
+            <div class="card-body">
+                <!-- PO Selection -->
+                <div class="form-group">
+                    <label class="form-label">PURCHASE ORDER</label>
+                    <select class="form-control" name="po_number" required>
+                        <option value="">-- Select Purchase Order --</option>
+                        {% for po in pending_purchase_orders %}
+                        <option value="{{ po.po_number }}">
+                            {{ po.po_number }} - {{ po.supplier }} ({{ po.total_items }} items, {{ po.total_quantity }} units)
+                        </option>
+                        {% endfor %}
+                        <option value="direct">Direct Receiving (No PO)</option>
+                    </select>
+                </div>
+                
+                <!-- Supplier Information -->
+                <div class="form-group">
+                    <label class="form-label">SUPPLIER</label>
+                    <select class="form-control" name="supplier" required>
+                        <option value="">-- Select Supplier --</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}">{{ supplier.name }} - {{ supplier.contact }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Delivery Details -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">DELIVERY DATE</label>
+                        <input type="date" class="form-control" name="delivery_date" value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">DELIVERY TIME</label>
+                        <input type="time" class="form-control" name="delivery_time" value="09:00" required>
+                    </div>
+                </div>
+                
+                <!-- Carrier Information -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">CARRIER</label>
+                        <input type="text" class="form-control" name="carrier" placeholder="e.g., FedEx, UPS, DHL">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">TRACKING NUMBER</label>
+                        <input type="text" class="form-control" name="tracking_number" placeholder="e.g., 123456789">
+                    </div>
+                </div>
+                
+                <!-- Delivery Status -->
+                <div class="form-group">
+                    <label class="form-label">DELIVERY STATUS</label>
+                    <select class="form-control" name="delivery_status" required>
+                        <option value="">-- Select Status --</option>
+                        {% for status in delivery_statuses %}
+                        <option value="{{ status.value }}">{{ status.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Delivery Notes -->
+                <div class="form-group">
+                    <label class="form-label">DELIVERY NOTES</label>
+                    <textarea class="form-control" name="notes" rows="4" placeholder="Enter any notes about this delivery..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Items to Receive -->
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="fas fa-boxes" style="margin-right: 10px;"></i> ITEMS TO RECEIVE
+                </div>
+                <button type="button" class="btn" style="padding: 8px 16px; font-size: 12px;" onclick="addItemRow()">
+                    <i class="fas fa-plus"></i> ADD ITEM
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Items Table -->
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table class="table" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th>ITEM</th>
+                                <th>QUANTITY</th>
+                                <th>QUALITY</th>
+                                <th>LOCATION</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Initial row will be added by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Receiving Summary -->
+                <div style="background: #f8f9fa; padding: 20px; margin-top: 20px;">
+                    <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">RECEIVING SUMMARY</h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                        <div>
+                            <div id="totalItems" style="font-size: 24px; font-weight: 800; color: #0984e3;">0</div>
+                            <div style="font-size: 12px; color: #666;">Total Items</div>
+                        </div>
+                        <div>
+                            <div id="totalQuantity" style="font-size: 24px; font-weight: 800; color: #00b894;">0</div>
+                            <div style="font-size: 12px; color: #666;">Total Quantity</div>
+                        </div>
+                        <div>
+                            <div id="damagedCount" style="font-size: 24px; font-weight: 800; color: #ff6b6b;">0</div>
+                            <div style="font-size: 12px; color: #666;">Damaged Items</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Information -->
+    <div class="card" style="margin-bottom: 40px;">
+        <div class="card-header">
+            <i class="fas fa-clipboard-check" style="margin-right: 10px;"></i> QUALITY INSPECTION
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                {% for check in quality_checks %}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 16px; height: 16px; background: {{ check.color }}; border-radius: 3px;"></div>
+                    <span style="font-size: 14px;">{{ check.label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">INSPECTION NOTES</label>
+                <textarea class="form-control" name="inspection_notes" rows="3" placeholder="Enter quality inspection notes..."></textarea>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Quick Instructions -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-info-circle" style="margin-right: 10px;"></i> RECEIVING INSTRUCTIONS
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="padding: 15px; background: #f8f9fa;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-1" style="color: #0984e3; font-weight: 800;"></i>
+                    <h4 style="font-size: 14px; color: #000;">Verify Purchase Order</h4>
+                </div>
+                <p style="font-size: 13px; color: #666;">Check items against the purchase order to ensure correct items and quantities.</p>
+            </div>
+            
+            <div style="padding: 15px; background: #f8f9fa;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-2" style="color: #00b894; font-weight: 800;"></i>
+                    <h4 style="font-size: 14px; color: #000;">Quality Inspection</h4>
+                </div>
+                <p style="font-size: 13px; color: #666;">Inspect for damage, expiry dates, and overall quality of the items.</p>
+            </div>
+            
+            <div style="padding: 15px; background: #f8f9fa;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-3" style="color: #6c5ce7; font-weight: 800;"></i>
+                    <h4 style="font-size: 14px; color: #000;">Update Inventory</h4>
+                </div>
+                <p style="font-size: 13px; color: #666;">Once received, items will be automatically added to inventory stock levels.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Dynamic Items -->
+<script>
+let itemCounter = 0;
+
+function addItemRow(itemData = null) {
+    const tbody = document.getElementById('itemsTableBody');
+    const rowId = `item_${itemCounter++}`;
+    
+    const row = document.createElement('tr');
+    row.id = rowId;
+    
+    row.innerHTML = `
+        <td>
+            <div style="display: grid; gap: 10px;">
+                <input type="text" class="form-control" name="items[${rowId}][sku]" placeholder="SKU" style="font-family: monospace;" required>
+                <input type="text" class="form-control" name="items[${rowId}][name]" placeholder="Item Description" required>
+            </div>
+        </td>
+        <td>
+            <div style="display: grid; gap: 10px;">
+                <div style="display: flex; gap: 5px;">
+                    <input type="number" class="form-control" name="items[${rowId}][quantity]" placeholder="Qty" min="0" step="1" style="text-align: center;" required onchange="updateSummary()">
+                    <select class="form-control" name="items[${rowId}][unit]" style="width: 80px;">
+                        <option value="units">Units</option>
+                        <option value="cases">Cases</option>
+                        <option value="pallets">Pallets</option>
+                        <option value="liters">Liters</option>
+                    </select>
+                </div>
+                <input type="number" class="form-control" name="items[${rowId}][ordered_qty]" placeholder="Ordered Qty" min="0" step="1" style="text-align: center;">
+            </div>
+        </td>
+        <td>
+            <select class="form-control" name="items[${rowId}][quality]" style="width: 120px;" onchange="updateSummary()">
+                <option value="good">Good</option>
+                <option value="damaged">Damaged</option>
+                <option value="expired">Expired</option>
+                <option value="wrong_item">Wrong Item</option>
+            </select>
+        </td>
+        <td>
+            <input type="text" class="form-control" name="items[${rowId}][location]" placeholder="e.g., A1-25" style="font-family: monospace;">
+        </td>
+        <td>
+            <button type="button" class="btn" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;" onclick="removeItemRow('${rowId}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(row);
+    updateSummary();
+}
+
+function removeItemRow(rowId) {
+    const row = document.getElementById(rowId);
+    if (row) {
+        row.remove();
+        updateSummary();
+    }
+}
+
+function updateSummary() {
+    const rows = document.querySelectorAll('#itemsTableBody tr');
+    let totalItems = 0;
+    let totalQuantity = 0;
+    let damagedCount = 0;
+    
+    rows.forEach(row => {
+        totalItems++;
+        
+        const quantityInput = row.querySelector('input[name*="[quantity]"]');
+        const qualitySelect = row.querySelector('select[name*="[quality]"]');
+        
+        if (quantityInput && quantityInput.value) {
+            totalQuantity += parseInt(quantityInput.value) || 0;
+        }
+        
+        if (qualitySelect && qualitySelect.value === 'damaged') {
+            damagedCount++;
+        }
+    });
+    
+    document.getElementById('totalItems').textContent = totalItems;
+    document.getElementById('totalQuantity').textContent = totalQuantity;
+    document.getElementById('damagedCount').textContent = damagedCount;
+}
+
+// Add initial row when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    addItemRow();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Management - Warehouse Dashboard{% endblock %}
+
+{% block content %}
+<!-- Inventory Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+    <div>
+        <h1>INVENTORY MANAGEMENT</h1>
+        <p style="color: #666; margin-top: 10px;">View and manage all beverage inventory items</p>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <a href="{% url 'warehouse_add_item' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-plus-circle"></i> ADD NEW ITEM
+        </a>
+        <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
+            <i class="fas fa-print"></i> PRINT REPORT
+        </button>
+    </div>
+</div>
+
+<!-- Inventory Stats -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-value">{{ inventory_stats.total_items|default:"450" }}</div>
+        <div class="stat-label">Total Items</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value">{{ inventory_stats.in_stock|default:"420" }}</div>
+        <div class="stat-label">In Stock</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">{{ inventory_stats.low_stock|default:"15" }}</div>
+        <div class="stat-label">Low Stock</div>
+    </div>
+    
+    <div class="card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-value">{{ inventory_stats.out_of_stock|default:"3" }}</div>
+        <div class="stat-label">Out of Stock</div>
+    </div>
+</div>
+
+<!-- Filter and Search Bar -->
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: end;">
+            <!-- Search -->
+            <div class="form-group">
+                <label class="form-label">Search Inventory</label>
+                <div style="position: relative;">
+                    <input type="text" class="form-control" placeholder="Search by SKU, name, or brand...">
+                    <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                </div>
+            </div>
+            
+            <!-- Category Filter -->
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-control">
+                    <option value="">All Categories</option>
+                    <option value="soft_drinks">Soft Drinks</option>
+                    <option value="energy_drinks">Energy Drinks</option>
+                    <option value="juices">Juices</option>
+                    <option value="water">Water</option>
+                    <option value="alcoholic">Alcoholic Beverages</option>
+                </select>
+            </div>
+            
+            <!-- Stock Level Filter -->
+            <div class="form-group">
+                <label class="form-label">Stock Level</label>
+                <select class="form-control">
+                    <option value="">All Levels</option>
+                    <option value="in_stock">In Stock</option>
+                    <option value="low_stock">Low Stock</option>
+                    <option value="out_of_stock">Out of Stock</option>
+                </select>
+            </div>
+            
+            <!-- Location Filter -->
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <select class="form-control">
+                    <option value="">All Locations</option>
+                    <option value="A1">Aisle A1</option>
+                    <option value="A2">Aisle A2</option>
+                    <option value="B1">Aisle B1</option>
+                    <option value="B2">Aisle B2</option>
+                    <option value="C1">Aisle C1</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <button class="btn" style="padding: 10px 24px; font-size: 13px;">
+                <i class="fas fa-filter"></i> APPLY FILTERS
+            </button>
+            <div style="font-size: 13px; color: #666;">
+                Showing {{ page_obj.start_index|default:"1" }} - {{ page_obj.end_index|default:"20" }} of {{ page_obj.paginator.count|default:"450" }} items
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <i class="fas fa-list-alt" style="margin-right: 10px;"></i> INVENTORY ITEMS
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="padding: 8px 16px; font-size: 12px;">
+                <i class="fas fa-file-export"></i> EXPORT
+            </button>
+            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;">
+                <i class="fas fa-sync-alt"></i> REFRESH
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>ITEM NAME</th>
+                        <th>CATEGORY</th>
+                        <th>BRAND</th>
+                        <th>QUANTITY</th>
+                        <th>LOCATION</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory_items %}
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">
+                            {{ item.sku|default:"BEV-001" }}
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">{{ item.name|default:"Coca-Cola 330ml" }}</div>
+                            <div style="font-size: 12px; color: #666;">{{ item.description|default:"Carbonated soft drink"|truncatechars:30 }}</div>
+                        </td>
+                        <td>
+                            <span style="padding: 4px 10px; background: 
+                                {% if item.category == 'Soft Drinks' %}#0984e3
+                                {% elif item.category == 'Energy Drinks' %}#00b894
+                                {% elif item.category == 'Juices' %}#e17055
+                                {% elif item.category == 'Water' %}#6c5ce7
+                                {% else %}#636e72{% endif %}; 
+                                color: white; font-size: 11px; font-weight: 600;">
+                                {{ item.category|default:"Soft Drinks" }}
+                            </span>
+                        </td>
+                        <td style="font-size: 13px;">{{ item.brand|default:"Coca-Cola" }}</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">
+                                {{ item.quantity|default:"125" }}
+                            </div>
+                            {% if item.reorder_point %}
+                            <div style="font-size: 11px; color: #666; text-align: center;">
+                                Reorder: {{ item.reorder_point|default:"20" }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>
+                            {{ item.location|default:"A1-25" }}
+                        </td>
+                        <td>
+                            {% if item.quantity >= item.reorder_point|default:20 %}
+                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">
+                                IN STOCK
+                            </span>
+                            {% elif item.quantity > 0 and item.quantity < item.reorder_point|default:20 %}
+                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">
+                                LOW STOCK
+                            </span>
+                            {% else %}
+                            <span style="padding: 4px 10px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">
+                                OUT OF STOCK
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{% url 'warehouse_update_stock' item.id|default:1 %}" 
+                                   class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <!-- Default inventory items if no data -->
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-001</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml</div>
+                            <div style="font-size: 12px; color: #666;">Carbonated soft drink</div>
+                        </td>
+                        <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">Soft Drinks</span></td>
+                        <td style="font-size: 13px;">Coca-Cola</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">125</div>
+                            <div style="font-size: 11px; color: #666; text-align: center;">Reorder: 20</div>
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;"><i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>A1-25</td>
+                        <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">IN STOCK</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="#" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-002</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">Pepsi 500ml</div>
+                            <div style="font-size: 12px; color: #666;">Carbonated soft drink</div>
+                        </td>
+                        <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">Soft Drinks</span></td>
+                        <td style="font-size: 13px;">PepsiCo</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">8</div>
+                            <div style="font-size: 11px; color: #666; text-align: center;">Reorder: 15</div>
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;"><i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>A1-26</td>
+                        <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">LOW STOCK</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="#" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-015</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">Red Bull 250ml</div>
+                            <div style="font-size: 12px; color: #666;">Energy drink</div>
+                        </td>
+                        <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">Energy Drinks</span></td>
+                        <td style="font-size: 13px;">Red Bull</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">15</div>
+                            <div style="font-size: 11px; color: #666; text-align: center;">Reorder: 10</div>
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;"><i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>B1-10</td>
+                        <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">LOW STOCK</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="#" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-023</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">Tropicana Orange Juice 1L</div>
+                            <div style="font-size: 12px; color: #666;">100% pure orange juice</div>
+                        </td>
+                        <td><span style="padding: 4px 10px; background: #e17055; color: white; font-size: 11px; font-weight: 600;">Juices</span></td>
+                        <td style="font-size: 13px;">Tropicana</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">0</div>
+                            <div style="font-size: 11px; color: #666; text-align: center;">Reorder: 12</div>
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;"><i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>C1-15</td>
+                        <td><span style="padding: 4px 10px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">OUT OF STOCK</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="#" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-034</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 14px;">Evian Natural Water 500ml</div>
+                            <div style="font-size: 12px; color: #666;">Natural spring water</div>
+                        </td>
+                        <td><span style="padding: 4px 10px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 600;">Water</span></td>
+                        <td style="font-size: 13px;">Evian</td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 16px; text-align: center;">95</div>
+                            <div style="font-size: 11px; color: #666; text-align: center;">Reorder: 25</div>
+                        </td>
+                        <td style="font-size: 13px; font-family: monospace;"><i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #666;"></i>B2-05</td>
+                        <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">IN STOCK</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="#" class="btn" style="padding: 6px 12px; font-size: 11px;">
+                                    <i class="fas fa-edit"></i> UPDATE
+                                </a>
+                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
+                                    <i class="fas fa-eye"></i> VIEW
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div style="display: flex; justify-content: center; margin-top: 30px;">
+            <div style="display: flex; gap: 10px;">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn" style="padding: 8px 16px; font-size: 13px;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="btn" style="padding: 8px 16px; font-size: 13px; background: #000; color: white;">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn" style="padding: 8px 16px; font-size: 13px;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px;">
+    <!-- Stock Status Summary -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-chart-pie" style="margin-right: 10px;"></i> STOCK STATUS SUMMARY
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
+                <div>
+                    <div style="font-size: 32px; font-weight: 800; color: #00b894;">{{ inventory_stats.in_stock|default:"420" }}</div>
+                    <div style="font-size: 13px; color: #666;">In Stock</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: 800; color: #fdcb6e;">{{ inventory_stats.low_stock|default:"15" }}</div>
+                    <div style="font-size: 13px; color: #666;">Low Stock</div>
+                </div>
+                <div>
+                    <div style="font-size: 32px; font-weight: 800; color: #ff6b6b;">{{ inventory_stats.out_of_stock|default:"3" }}</div>
+                    <div style="font-size: 13px; color: #666;">Out of Stock</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Alerts -->
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <i class="fas fa-bell" style="margin-right: 10px;"></i> ACTIVE ALERTS
+            </div>
+            <span class="btn" style="padding: 4px 12px; background: #ff6b6b; color: white; font-size: 12px; font-weight: 600;">
+                {{ inventory_alerts|length|default:"5" }} ALERTS
+            </span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for alert in inventory_alerts|slice:":3" %}
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 13px;">{{ alert.message|default:"Pepsi 500ml - Low Stock" }}</div>
+                        <div style="font-size: 12px; color: #666;">{{ alert.details|default:"Only 8 units remaining" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Default alerts if no data -->
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 13px;">Pepsi 500ml - Low Stock</div>
+                        <div style="font-size: 12px; color: #666;">Only 8 units remaining</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 13px;">Tropicana Orange Juice - Out of Stock</div>
+                        <div style="font-size: 12px; color: #666;">0 units remaining</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 13px;">Red Bull 250ml - Low Stock</div>
+                        <div style="font-size: 12px; color: #666;">Only 15 units remaining</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" style="color: #000; font-weight: 600; font-size: 13px; text-decoration: none;">
+                    <i class="fas fa-list" style="margin-right: 8px;"></i> VIEW ALL ALERTS
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
