@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate
-from .models import User
+from .models import User, InventoryItem, StockAdjustment, Supplier, PurchaseOrder, RequisitionForm, ReceivingReport
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(
@@ -118,3 +118,90 @@ class UserLoginForm(AuthenticationForm):
                 self.confirm_login_allowed(self.user_cache)
         
         return self.cleaned_data
+    
+class InventoryItemForm(forms.ModelForm):
+    class Meta:
+        model = InventoryItem
+        fields = [
+            'sku', 'name', 'description', 'category', 'brand',
+            'quantity', 'reorder_point', 'unit', 'location',
+            'cost_price', 'selling_price', 'expiry_date', 'supplier_name'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'expiry_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            # Select widget for unit will pick up choices from Model
+            'unit': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            
+            # Standard classes
+            'sku': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'reorder_point': forms.NumberInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'cost_price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'selling_price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'supplier_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class StockUpdateForm(forms.Form):
+    ADJUSTMENT_CHOICES = (
+        ('receive', 'Receiving (Add Stock)'),
+        ('adjust', 'Manual Adjustment (+/-)'),
+        ('damage', 'Damage/Wastage (Remove Stock)'),
+        ('set', 'Set Exact Quantity'),
+    )
+    
+    adjustment_type = forms.ChoiceField(choices=ADJUSTMENT_CHOICES, widget=forms.RadioSelect)
+    quantity = forms.IntegerField(min_value=0, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    reference = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., PO-2024-001'}))
+    reason = forms.CharField(required=True, widget=forms.Select(choices=[
+        ('Delivery Received', 'Delivery Received'),
+        ('Inventory Correction', 'Inventory Correction'),
+        ('Damaged Goods', 'Damaged Goods'),
+        ('Expired Goods', 'Expired Goods'),
+        ('Other', 'Other'),
+    ], attrs={'class': 'form-control'}))
+    notes = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+    
+class SupplierForm(forms.ModelForm):
+    class Meta:
+        model = Supplier
+        fields = ['name', 'contact_person', 'email', 'phone', 'address', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class PurchaseOrderForm(forms.ModelForm):
+    class Meta:
+        model = PurchaseOrder
+        fields = ['supplier', 'requisition', 'selection_justification']
+        widgets = {
+            'supplier': forms.Select(attrs={'class': 'form-control'}),
+            'requisition': forms.Select(attrs={'class': 'form-control'}),
+            'selection_justification': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'e.g., Selected based on lowest price from 3 physical quotes.'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter requisitions to only show those needing purchasing
+        self.fields['requisition'].queryset = RequisitionForm.objects.filter(
+            route_destination='purchasing'
+        ).exclude(status='closed')
+
+class ReceivingForm(forms.ModelForm):
+    class Meta:
+        model = ReceivingReport
+        fields = ['delivery_receipt_no', 'inspection_notes', 'quality_check_passed']
+        widgets = {
+            'delivery_receipt_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Supplier DR #'}),
+            'inspection_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Note any damages or expiry issues...'}),
+            'quality_check_passed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

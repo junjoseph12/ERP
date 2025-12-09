@@ -3,7 +3,6 @@
 {% block title %}Add New Item - Inventory Management{% endblock %}
 
 {% block content %}
-<!-- Add Item Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>ADD NEW INVENTORY ITEM</h1>
@@ -16,7 +15,6 @@
     </div>
 </div>
 
-<!-- Add Item Form -->
 <div class="card">
     <div class="card-header">
         <i class="fas fa-plus-circle" style="margin-right: 10px;"></i> ITEM DETAILS
@@ -24,156 +22,104 @@
     <div class="card-body">
        <form method="post" action="{% url 'warehouse_add_item' %}">
             {% csrf_token %}
+            {% if form.errors %}
+            <div style="background: #ffe6e6; border: 1px solid #ffcccc; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <p style="color: #d63031; font-weight: bold; margin-bottom: 5px;">Please correct the errors below:</p>
+                {{ form.errors }}
+            </div>
+            {% endif %}
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
-                <!-- Basic Information -->
                 <div>
                     <h3 style="font-size: 16px; margin-bottom: 20px; color: #000;">BASIC INFORMATION</h3>
                     
                     <div class="form-group">
                         <label class="form-label">SKU *</label>
-                        <input type="text" name="sku" class="form-control" required placeholder="e.g., BEV-001">
+                        {{ form.sku }}
                         <small style="color: #666; font-size: 12px;">Unique Stock Keeping Unit identifier</small>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Item Name *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="e.g., Coca-Cola 330ml">
+                        {{ form.name }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Brief description of the item"></textarea>
+                        {{ form.description }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Brand *</label>
-                        <input type="text" name="brand" class="form-control" required placeholder="e.g., Coca-Cola">
+                        {{ form.brand }}
                     </div>
                 </div>
                 
-                <!-- Classification & Stock -->
                 <div>
                     <h3 style="font-size: 16px; margin-bottom: 20px; color: #000;">CLASSIFICATION & STOCK</h3>
                     
                     <div class="form-group">
                         <label class="form-label">Category *</label>
-                        <select name="category" class="form-control" required>
-                            <option value="">Select Category</option>
-                            <option value="soft_drinks">Soft Drinks</option>
-                            <option value="energy_drinks">Energy Drinks</option>
-                            <option value="juices">Juices</option>
-                            <option value="water">Water</option>
-                            <option value="alcoholic">Alcoholic Beverages</option>
-                            <option value="other">Other</option>
-                        </select>
+                        {{ form.category }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Unit of Measurement *</label>
-                        <select name="unit" class="form-control" required>
-                            <option value="">Select Unit</option>
-                            <option value="bottles">Bottles</option>
-                            <option value="cans">Cans</option>
-                            <option value="cases">Cases</option>
-                            <option value="pallets">Pallets</option>
-                            <option value="liters">Liters</option>
-                        </select>
+                        {{ form.unit }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Initial Quantity *</label>
-                        <input type="number" name="quantity" class="form-control" required min="0" placeholder="e.g., 100">
+                        {{ form.quantity }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Reorder Point</label>
-                        <input type="number" name="reorder_point" class="form-control" min="0" placeholder="e.g., 20">
+                        {{ form.reorder_point }}
                         <small style="color: #666; font-size: 12px;">Minimum quantity before reordering</small>
                     </div>
                 </div>
             </div>
             
-            <!-- Additional Information -->
             <div style="margin-bottom: 30px;">
                 <h3 style="font-size: 16px; margin-bottom: 20px; color: #000;">ADDITIONAL INFORMATION</h3>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
                     <div class="form-group">
-                        <label class="form-label">Cost Price (per unit)</label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666;">$</span>
-                            <input type="number" name="cost_price" class="form-control" style="padding-left: 30px;" min="0" step="0.01" placeholder="0.00">
-                        </div>
+                        <label class="form-label">Cost Price</label>
+                        {{ form.cost_price }}
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Selling Price (per unit)</label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666;">$</span>
-                            <input type="number" name="selling_price" class="form-control" style="padding-left: 30px;" min="0" step="0.01" placeholder="0.00">
-                        </div>
+                        <label class="form-label">Selling Price</label>
+                        {{ form.selling_price }}
                     </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
                     <div class="form-group">
                         <label class="form-label">Expiry Date</label>
-                        <input type="date" name="expiry_date" class="form-control">
-                        <small style="color: #666; font-size: 12px;">If applicable</small>
+                        {{ form.expiry_date }}
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Storage Location</label>
-                        <input type="text" name="location" class="form-control" placeholder="e.g., A1-25">
-                        <small style="color: #666; font-size: 12px;">Aisle, shelf, or bin location</small>
+                        {{ form.location }}
                     </div>
                 </div>
                 
                 <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label">Supplier</label>
-                    <select name="supplier" class="form-control">
-                        <option value="">Select Supplier</option>
-                        <option value="beverage_supply">Beverage Supply Co.</option>
-                        <option value="drinks_distributors">Drinks Distributors</option>
-                        <option value="refreshment_wholesale">Refreshment Wholesale</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <label class="form-label">Supplier Name</label>
+                    {{ form.supplier_name }}
                 </div>
             </div>
             
-            <!-- Form Actions -->
             <div style="display: flex; justify-content: flex-end; gap: 15px; padding-top: 30px; border-top: 1px solid #eee;">
-                <a href="{% url 'warehouse_inventory' %}" class="btn btn-secondary" style="padding: 14px 32px; font-size: 14px;">
-                    CANCEL
-                </a>
                 <button type="submit" class="btn" style="padding: 14px 32px; font-size: 14px;">
                     <i class="fas fa-save"></i> SAVE ITEM
                 </button>
             </div>
         </form>
-    </div>
-</div>
-
-<!-- Quick Help -->
-<div class="card" style="margin-top: 40px;">
-    <div class="card-header">
-        <i class="fas fa-question-circle" style="margin-right: 10px;"></i> QUICK TIPS
-    </div>
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">SKU Format</h4>
-                <p style="color: #666; font-size: 13px;">Use consistent SKU format: BEV-XXX for beverages, DRK-XXX for drinks, etc.</p>
-            </div>
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">Reorder Points</h4>
-                <p style="color: #666; font-size: 13px;">Set realistic reorder points based on consumption patterns to avoid stockouts.</p>
-            </div>
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">Location Codes</h4>
-                <p style="color: #666; font-size: 13px;">Use location codes like A1-25 (Aisle 1, Shelf 2, Position 5) for easy retrieval.</p>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

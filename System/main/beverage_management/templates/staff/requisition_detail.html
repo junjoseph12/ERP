@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Request Details - Beverage ERP{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                <h1 style="font-size: 28px; font-weight: 800; color: #1a1a1a; margin: 0;">{{ req.rf_number }}</h1>
+                <span style="padding: 6px 14px; border-radius: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+                    {% if req.status == 'approved' %}background: #e6fcf5; color: #00b894;
+                    {% elif req.status == 'pending_dept_head' %}background: #fff9db; color: #f1c40f;
+                    {% elif req.status == 'closed' %}background: #f0f5ff; color: #0984e3;
+                    {% elif req.status == 'rejected' %}background: #fff5f5; color: #ff6b6b;
+                    {% else %}background: #f0f5ff; color: #0984e3;{% endif %}">
+                    {{ req.get_status_display }}
+                </span>
+            </div>
+            <p style="color: #666; font-size: 14px;">Submitted on {{ req.date_created|date:"F d, Y" }} at {{ req.date_created|date:"h:i A" }}</p>
+        </div>
+        <a href="{% url 'staff_my_requisitions' %}" class="btn btn-secondary" style="border-radius: 0; padding: 12px 24px; font-size: 13px; font-weight: 600; background: #f8f9fa; border: 1px solid #eee; color: #666;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> BACK TO LIST
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        
+        <div>
+            <div class="card" style="border-radius: 0; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden;">
+                <div class="card-header" style="background: white; border-bottom: 1px solid #f0f0f0; padding: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: #1a1a1a;">Requested Items</h3>
+                    <span style="font-size: 12px; color: #999; font-weight: 600;">{{ req.items.count }} ITEMS</span>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <table class="table" style="width: 100%;">
+                        <thead style="background: #fcfcfc; border-bottom: 1px solid #eee;">
+                            <tr>
+                                <th style="padding: 15px 25px; font-size: 11px; text-transform: uppercase; color: #999; font-weight: 600; text-align: left;">Item Details</th>
+                                <th style="padding: 15px 25px; font-size: 11px; text-transform: uppercase; color: #999; font-weight: 600; text-align: center;">Unit</th>
+                                <th style="padding: 15px 25px; font-size: 11px; text-transform: uppercase; color: #999; font-weight: 600; text-align: right;">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in req.items.all %}
+                            <tr style="border-bottom: 1px solid #f9f9f9; transition: background 0.2s;">
+                                <td style="padding: 20px 25px;">
+                                    <div style="font-weight: 600; color: #2d3436; font-size: 14px;">{{ item.item.name }}</div>
+                                    <div style="font-size: 12px; color: #b2bec3; font-family: monospace; margin-top: 4px;">{{ item.item.sku }}</div>
+                                </td>
+                                <td style="padding: 20px 25px; text-align: center;">
+                                    <span style="background: #f8f9fa; color: #636e72; padding: 4px 10px; border-radius: 0; font-size: 11px; font-weight: 600; border: 1px solid #eee;">
+                                        {{ item.item.get_unit_display }}
+                                    </span>
+                                </td>
+                                <td style="padding: 20px 25px; text-align: right;">
+                                    <div style="font-weight: 800; color: #0984e3; font-size: 16px;">{{ item.quantity_requested }}</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="border-radius: 0; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.03);">
+                <div class="card-body" style="padding: 30px;">
+                    <h4 style="font-size: 12px; font-weight: 700; color: #b2bec3; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Additional Notes</h4>
+                    <div style="font-size: 14px; color: #2d3436; line-height: 1.6; background: #f8f9fa; padding: 20px; border-radius: 0; border: 1px solid #eee;">
+                        {% if req.notes %}
+                            {{ req.notes }}
+                        {% else %}
+                            <span style="color: #999; font-style: italic;">No additional notes provided.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 30px;">
+            <div class="card" style="border-radius: 0; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.03);">
+                <div class="card-body" style="padding: 30px;">
+                    <h4 style="font-size: 12px; font-weight: 700; color: #b2bec3; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px;">Information</h4>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 11px; color: #999; margin-bottom: 5px; font-weight: 600;">PURPOSE</div>
+                        <div style="font-weight: 600; color: #2d3436; font-size: 14px; text-transform: capitalize;">{{ req.purpose|default:"General Use" }}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 11px; color: #999; margin-bottom: 5px; font-weight: 600;">DEPARTMENT</div>
+                        <div style="font-weight: 600; color: #2d3436; font-size: 14px;">{{ req.department }}</div>
+                    </div>
+
+                    <div>
+                        <div style="font-size: 11px; color: #999; margin-bottom: 8px; font-weight: 600;">CURRENT ROUTING</div>
+                        {% if req.route_destination == 'purchasing' %}
+                            <div style="display: flex; align-items: center; gap: 12px; background: #fff5f5; padding: 12px; border-radius: 0; border: 1px solid #ffe3e3;">
+                                <div style="width: 32px; height: 32px; background: #ff6b6b; border-radius: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #2d3436; font-size: 13px;">Purchasing</div>
+                                    <div style="font-size: 11px; color: #ff6b6b; font-weight: 500;">Pending</div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div style="display: flex; align-items: center; gap: 12px; background: #e6fcf5; padding: 12px; border-radius: 0; border: 1px solid #c3fae8;">
+                                <div style="width: 32px; height: 32px; background: #00b894; border-radius: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
+                                    <i class="fas fa-warehouse"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #2d3436; font-size: 13px;">Warehouse</div>
+                                    <div style="font-size: 11px; color: #00b894; font-weight: 500;">Direct Delivery</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border-radius: 0; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.03);">
+                <div class="card-body" style="padding: 30px;">
+                    <h4 style="font-size: 12px; font-weight: 700; color: #b2bec3; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 0.5px;">Tracking</h4>
+                    
+                    <div style="position: relative; padding-left: 20px; border-left: 2px solid #f0f0f0;">
+                        <div style="margin-bottom: 30px; position: relative;">
+                            <div style="width: 14px; height: 14px; background: #00b894; border-radius: 0; position: absolute; left: -28px; top: 2px; border: 3px solid white; box-shadow: 0 0 0 1px #00b894;"></div>
+                            <div style="font-size: 13px; font-weight: 700; color: #2d3436;">Request Submitted</div>
+                            <div style="font-size: 11px; color: #999; margin-top: 2px;">{{ req.date_created|date:"M d, h:i A" }}</div>
+                        </div>
+
+                        <div style="margin-bottom: 30px; position: relative;">
+                            <div style="width: 14px; height: 14px; 
+                                {% if req.status != 'pending_dept_head' %}background: #00b894; box-shadow: 0 0 0 1px #00b894;{% else %}background: #e0e0e0; box-shadow: 0 0 0 1px #e0e0e0;{% endif %} 
+                                border-radius: 0; position: absolute; left: -28px; top: 2px; border: 3px solid white;"></div>
+                            <div style="font-size: 13px; font-weight: 700; color: {% if req.status != 'pending_dept_head' %}#2d3436{% else %}#b2bec3{% endif %};">
+                                Approval Process
+                            </div>
+                            <div style="font-size: 11px; color: {% if req.status == 'approved' %}#00b894{% elif req.status == 'rejected' %}#ff6b6b{% else %}#999{% endif %}; margin-top: 2px; font-weight: 500;">
+                                {% if req.status == 'approved' %}Approved{% elif req.status == 'rejected' %}Rejected{% else %}Pending Review{% endif %}
+                            </div>
+                        </div>
+
+                        <div style="position: relative;">
+                            <div style="width: 14px; height: 14px; 
+                                {% if req.status == 'closed' %}background: #00b894; box-shadow: 0 0 0 1px #00b894;{% else %}background: #e0e0e0; box-shadow: 0 0 0 1px #e0e0e0;{% endif %} 
+                                border-radius: 0; position: absolute; left: -28px; top: 2px; border: 3px solid white;"></div>
+                            <div style="font-size: 13px; font-weight: 700; color: {% if req.status == 'closed' %}#2d3436{% else %}#b2bec3{% endif %};">
+                                Delivery Complete
+                            </div>
+                            {% if req.status == 'closed' %}
+                            <div style="font-size: 11px; color: #00b894; margin-top: 2px; font-weight: 500;">Delivered</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

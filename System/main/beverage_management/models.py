@@ -13,7 +13,6 @@ class User(AbstractUser):
         ('warehouse_manager', 'Warehouse Manager'), 
         ('purchasing_officer', 'Purchasing Officer'), 
         ('staff', 'Staff'), 
-        # Top Management (VP/Finance) is excluded; their approval is physical
     )
     
     STATUS_CHOICES = (
@@ -50,7 +49,19 @@ class InventoryItem(models.Model):
         ('juices', 'Juices'),
         ('water', 'Water'),
         ('alcoholic', 'Alcoholic Beverages'),
+        ('coffee_tea', 'Coffee/Tea'),
         ('other', 'Other'),
+    )
+
+    # ADDED: Dropdown measurements
+    UNIT_CHOICES = (
+        ('bottles', 'Bottles'),
+        ('cans', 'Cans'),
+        ('cases', 'Cases'),
+        ('packs', 'Packs (6/12)'),
+        ('liters', 'Liters'),
+        ('kegs', 'Kegs'),
+        ('pallets', 'Pallets'),
     )
 
     sku = models.CharField(max_length=50, unique=True)
@@ -61,7 +72,9 @@ class InventoryItem(models.Model):
     
     quantity = models.IntegerField(default=0) 
     reorder_point = models.IntegerField(default=20) 
-    unit = models.CharField(max_length=20, default='bottles')
+    
+    # CHANGED: Now uses choices=UNIT_CHOICES
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default='bottles')
     
     location = models.CharField(max_length=50, help_text="Aisle-Shelf-Bin")
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -103,6 +116,11 @@ class RequisitionForm(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_dept_head')
     
+    # --- ADD THESE TWO LINES ---
+    purpose = models.CharField(max_length=50, blank=True)
+    notes = models.TextField(blank=True)
+    # ---------------------------
+    
     # Physical Approval Tracking
     is_signed_by_dept_head = models.BooleanField(default=False)
     date_signed_dept_head = models.DateField(null=True, blank=True)
@@ -110,7 +128,7 @@ class RequisitionForm(models.Model):
     is_signed_by_vp = models.BooleanField(default=False)
     date_signed_vp = models.DateField(null=True, blank=True)
     
-    # Routing Logic (Inventory Check Result)
+    # Routing Logic
     route_destination = models.CharField(
         max_length=20, 
         choices=(('warehouse', 'Warehouse (Pick List)'), ('purchasing', 'Purchasing (PO)')),
@@ -124,8 +142,6 @@ class RequisitionItem(models.Model):
     requisition = models.ForeignKey(RequisitionForm, on_delete=models.CASCADE, related_name='items')
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
     quantity_requested = models.IntegerField()
-    
-    # System Logic Gate Result
     stock_available_at_check = models.BooleanField(default=False, help_text="Result of system inventory check")
 
     def __str__(self):
@@ -147,33 +163,27 @@ class Supplier(models.Model):
         return self.name
 
 class PurchaseOrder(models.Model):
-    # Workflow updated for physical canvass
+
     STATUS_CHOICES = (
-        ('draft', 'Draft (Encoding Details)'), 
-        ('pending_approval', 'Pending VP Signature'),
-        ('approved', 'Approved (Signed)'),
-        ('sent', 'Sent to Supplier'), 
-        ('received', 'Received'),
-        ('cancelled', 'Cancelled'), 
+        ('ordered', 'Ordered'),       
+        ('in_transit', 'In Transit'), 
+        ('completed', 'Completed'),   
+        ('cancelled', 'Cancelled'),
     )
 
-    po_number = models.CharField(max_length=50, unique=True) 
-    requisition = models.ForeignKey(RequisitionForm, on_delete=models.CASCADE, null=True, blank=True, help_text="Linked RF if applicable")
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'purchasing_officer'}) 
-    
-    # The chosen supplier (Selected physically)
+    po_number = models.CharField(max_length=50, unique=True)
+    requisition = models.ForeignKey(RequisitionForm, on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'purchasing_officer'})
     supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     
-    # Physical Canvass Record (Audit Trail)
-    # Instead of storing 3 quotes data, we store the justification for the physical choice
-    selection_justification = models.TextField(
-        blank=True, 
-        help_text="Notes on physical canvass (e.g., 'Chosen based on physical canvass of 3 suppliers due to lowest price')"
-    )
+    # UPDATED: Default is now 'ordered'
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ordered')
     
-    # Physical Approval Tracking
+    selection_justification = models.TextField(blank=True)
+    
+    # VP Approval fields are no longer strictly needed for status logic 
+    # but can be kept for physical record audit if desired.
     is_signed_by_vp = models.BooleanField(default=False)
     date_signed_vp = models.DateField(null=True, blank=True)
 
@@ -184,7 +194,7 @@ class PurchaseOrderItem(models.Model):
     po = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
     quantity = models.IntegerField()
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2) # Input agreed price
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2) 
 
     @property
     def total_price(self):
@@ -195,7 +205,6 @@ class PurchaseOrderItem(models.Model):
 # ==========================================
 
 class ReceivingReport(models.Model):
-    # This acts as the System Entry / Receiving Memo (RM)
     STATUS_CHOICES = (
         ('pending', 'Inspection Pending'), 
         ('accepted', 'Accepted'),
@@ -207,11 +216,8 @@ class ReceivingReport(models.Model):
     delivery_receipt_no = models.CharField(max_length=100, help_text="Supplier DR #")
     received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'warehouse_manager'})
     date_received = models.DateTimeField(auto_now_add=True)
-    
-    # Inspection Results
     quality_check_passed = models.BooleanField(default=False) 
     inspection_notes = models.TextField(blank=True, help_text="Notes on damages or expiry")
-    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
@@ -225,14 +231,11 @@ class InternalDelivery(models.Model):
     requisition = models.OneToOneField(RequisitionForm, on_delete=models.CASCADE) 
     processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'warehouse_manager'})
     date_delivered = models.DateTimeField(null=True, blank=True)
-    
-    # Acknowledgement Receipt (AR)
     acknowledgement_receipt_signed = models.BooleanField(default=False) 
     received_by_staff_name = models.CharField(max_length=100, help_text="Name of staff who signed AR")
     date_signed_ar = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # When AR is signed, close the ticket
         if self.acknowledgement_receipt_signed and self.requisition.status != 'closed':
             self.requisition.status = 'closed'
             self.requisition.save()
@@ -264,9 +267,8 @@ class StockAdjustment(models.Model):
         return f"{self.item.sku} - {self.adjustment_type} ({self.quantity_change})"
 
 class AuditLog(models.Model):
-    # Generic log for signatures and login events
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    action = models.CharField(max_length=255) # e.g., "Marked RF-1001 as Signed by VP"
+    action = models.CharField(max_length=255) 
     details = models.TextField(blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)

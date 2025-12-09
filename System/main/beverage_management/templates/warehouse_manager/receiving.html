@@ -1,499 +1,121 @@
 {% extends 'base.html' %}
 
-{% block title %}Receiving Management - Warehouse Dashboard{% endblock %}
+{% block title %}Receiving - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Receiving Header -->
-<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
-    <div>
-        <h1>RECEIVING MANAGEMENT</h1>
-        <p style="color: #666; margin-top: 10px;">Process incoming deliveries and update inventory</p>
-    </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'warehouse_new_receiving' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-plus-circle"></i> NEW RECEIVING
-        </a>
-        <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-print"></i> PRINT RECEIPT
-        </button>
-    </div>
+<div style="margin-bottom: 40px;">
+    <h1>INCOMING DELIVERIES</h1>
+    <p style="color: #666; margin-top: 10px;">Process incoming shipments from suppliers (Status: In Transit).</p>
 </div>
 
-<!-- Receiving Stats -->
-<div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
-            <i class="fas fa-truck-loading"></i>
-        </div>
-        <div class="stat-value">{{ receiving_stats.pending|default:"5" }}</div>
-        <div class="stat-label">Pending Deliveries</div>
+<div class="card" style="border: 1px solid #eee; margin-bottom: 40px;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+        <i class="fas fa-truck-loading" style="margin-right: 10px;"></i> INCOMING SHIPMENTS (IN TRANSIT)
     </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
-        <div class="stat-value">{{ receiving_stats.processed|default:"12" }}</div>
-        <div class="stat-label">Processed Today</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-value">{{ receiving_stats.scheduled|default:"3" }}</div>
-        <div class="stat-label">Scheduled</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
-            <i class="fas fa-boxes"></i>
-        </div>
-        <div class="stat-value">{{ receiving_stats.items_received|default:"125" }}</div>
-        <div class="stat-label">Items Received</div>
-    </div>
-</div>
-
-<!-- Active Receiving Process -->
-<div class="card" style="margin-bottom: 30px;">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> ACTIVE RECEIVING PROCESS
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="padding: 8px 16px; font-size: 12px;">
-                <i class="fas fa-sync-alt"></i> REFRESH
-            </button>
-            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;">
-                <i class="fas fa-history"></i> HISTORY
-            </button>
-        </div>
-    </div>
-    <div class="card-body">
-        <!-- PO Selection -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 16px; margin-bottom: 15px; color: #000;">SELECT PURCHASE ORDER</h3>
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: end;">
-                <div class="form-group">
-                    <label class="form-label">PO Number</label>
-                    <select class="form-control">
-                        <option value="">Select a Purchase Order</option>
-                        <option value="PO-2024-0012">PO-2024-0012 - Beverage Supply Co.</option>
-                        <option value="PO-2024-0013">PO-2024-0013 - Drinks Distributors</option>
-                        <option value="PO-2024-0014">PO-2024-0014 - Refreshment Wholesale</option>
-                        <option value="PO-2024-0015">PO-2024-0015 - Global Beverages</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Supplier</label>
-                    <input type="text" class="form-control" value="Beverage Supply Co." readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Delivery Date</label>
-                    <input type="text" class="form-control" value="2024-01-15" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <input type="text" class="form-control" value="SCHEDULED" readonly style="color: #0984e3; font-weight: 600;">
-                </div>
-            </div>
-        </div>
-        
-        <!-- Receiving Items Table -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 16px; margin-bottom: 15px; color: #000;">RECEIVING ITEMS</h3>
-            <div style="overflow-x: auto;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>SKU</th>
-                            <th>ITEM DESCRIPTION</th>
-                            <th>ORDERED QTY</th>
-                            <th>RECEIVED QTY</th>
-                            <th>DIFFERENCE</th>
-                            <th>QUALITY CHECK</th>
-                            <th>LOCATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-001</td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml</div>
-                                <div style="font-size: 12px; color: #666;">Carbonated soft drink</div>
-                            </td>
-                            <td style="font-weight: 600; text-align: center;">50</td>
-                            <td>
-                                <input type="number" class="form-control" style="width: 80px; margin: 0 auto;" value="50" min="0">
-                            </td>
-                            <td style="text-align: center; font-weight: 600; color: #00b894;">0</td>
-                            <td>
-                                <select class="form-control" style="width: 120px; margin: 0 auto;">
-                                    <option value="good">Good</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" style="width: 100px; margin: 0 auto;" value="A1-25">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-002</td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 14px;">Pepsi 500ml</div>
-                                <div style="font-size: 12px; color: #666;">Carbonated soft drink</div>
-                            </td>
-                            <td style="font-weight: 600; text-align: center;">30</td>
-                            <td>
-                                <input type="number" class="form-control" style="width: 80px; margin: 0 auto;" value="30" min="0">
-                            </td>
-                            <td style="text-align: center; font-weight: 600; color: #00b894;">0</td>
-                            <td>
-                                <select class="form-control" style="width: 120px; margin: 0 auto;">
-                                    <option value="good">Good</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" style="width: 100px; margin: 0 auto;" value="A1-26">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-015</td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 14px;">Red Bull 250ml</div>
-                                <div style="font-size: 12px; color: #666;">Energy drink</div>
-                            </td>
-                            <td style="font-weight: 600; text-align: center;">25</td>
-                            <td>
-                                <input type="number" class="form-control" style="width: 80px; margin: 0 auto;" value="25" min="0">
-                            </td>
-                            <td style="text-align: center; font-weight: 600; color: #00b894;">0</td>
-                            <td>
-                                <select class="form-control" style="width: 120px; margin: 0 auto;">
-                                    <option value="good">Good</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" style="width: 100px; margin: 0 auto;" value="B1-10">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px; font-family: monospace;">BEV-034</td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 14px;">Evian Water 500ml</div>
-                                <div style="font-size: 12px; color: #666;">Natural spring water</div>
-                            </td>
-                            <td style="font-weight: 600; text-align: center;">20</td>
-                            <td>
-                                <input type="number" class="form-control" style="width: 80px; margin: 0 auto;" value="18" min="0">
-                            </td>
-                            <td style="text-align: center; font-weight: 600; color: #ff6b6b;">-2</td>
-                            <td>
-                                <select class="form-control" style="width: 120px; margin: 0 auto;">
-                                    <option value="damaged" selected>Damaged</option>
-                                    <option value="good">Good</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" style="width: 100px; margin: 0 auto;" value="B2-05">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Receiving Notes and Actions -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-            <div>
-                <h3 style="font-size: 16px; margin-bottom: 15px; color: #000;">RECEIVING NOTES</h3>
-                <div class="form-group">
-                    <textarea class="form-control" rows="5" placeholder="Enter any notes about this receiving...">2 units of Evian water arrived damaged. Supplier to be notified.</textarea>
-                </div>
-            </div>
-            
-            <div>
-                <h3 style="font-size: 16px; margin-bottom: 15px; color: #000;">RECEIVING SUMMARY</h3>
-                <div style="background: #f8f9fa; padding: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-size: 14px;">Total Items:</span>
-                        <span style="font-weight: 600;">4</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-size: 14px;">Ordered Quantity:</span>
-                        <span style="font-weight: 600;">125</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-size: 14px;">Received Quantity:</span>
-                        <span style="font-weight: 600; color: #00b894;">123</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                        <span style="font-size: 14px;">Short/Damaged:</span>
-                        <span style="font-weight: 600; color: #ff6b6b;">2</span>
-                    </div>
-                    <div style="border-top: 1px solid #ddd; padding-top: 15px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="font-weight: 600; font-size: 14px;">Receiving Status:</span>
-                            <span style="font-weight: 600; color: #0984e3;">IN PROGRESS</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-secondary" style="flex: 1; padding: 12px;">
-                        <i class="fas fa-save"></i> SAVE DRAFT
-                    </button>
-                    <button class="btn" style="flex: 1; padding: 12px; background: #00b894;">
-                        <i class="fas fa-check-circle"></i> COMPLETE RECEIVING
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Scheduled Deliveries -->
-<div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <i class="fas fa-calendar-alt" style="margin-right: 10px;"></i> SCHEDULED DELIVERIES
-        </div>
-        <a href="#" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
-            <i class="fas fa-calendar-plus" style="margin-right: 5px;"></i> SCHEDULE NEW
-        </a>
-    </div>
-    <div class="card-body">
+    <div class="card-body" style="padding: 0;">
         <div style="overflow-x: auto;">
-            <table class="table">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
                 <thead>
-                    <tr>
-                        <th>PO NUMBER</th>
-                        <th>SUPPLIER</th>
-                        <th>ITEMS</th>
-                        <th>TOTAL QTY</th>
-                        <th>SCHEDULED DATE</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">PO NUMBER</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 25%;">SUPPLIER</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">DATE ORDERED</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">STATUS</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0012</td>
-                        <td>
-                            <div style="font-weight: 600; font-size: 14px;">Beverage Supply Co.</div>
-                            <div style="font-size: 12px; color: #666;">Contact: John Smith</div>
+                    {% for po in incoming_pos %}
+                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; font-family: monospace; color: #000;">
+                            {{ po.po_number }}
                         </td>
-                        <td>
-                            <div>5 items</div>
-                            <div style="font-size: 12px; color: #666;">Coca-Cola, Pepsi, etc.</div>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 14px; color: #000;">
+                            {{ po.supplier.name }}
                         </td>
-                        <td style="font-weight: 600; text-align: center;">125</td>
-                        <td>
-                            <div style="font-weight: 600;">Today, 2:00 PM</div>
-                            <div style="font-size: 12px; color: #666;">Expected in 2 hours</div>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000;">
+                            {{ po.date_created|date:"M d, Y" }}
                         </td>
-                        <td>
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">
-                                SCHEDULED
-                            </span>
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <button class="btn" style="padding: 6px 12px; font-size: 11px;">
-                                    <i class="fas fa-play-circle"></i> START
-                                </button>
-                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0013</td>
-                        <td>
-                            <div style="font-weight: 600; font-size: 14px;">Drinks Distributors</div>
-                            <div style="font-size: 12px; color: #666;">Contact: Sarah Johnson</div>
-                        </td>
-                        <td>
-                            <div>3 items</div>
-                            <div style="font-size: 12px; color: #666;">Energy drinks</div>
-                        </td>
-                        <td style="font-weight: 600; text-align: center;">85</td>
-                        <td>
-                            <div style="font-weight: 600;">Tomorrow, 10:00 AM</div>
-                            <div style="font-size: 12px; color: #666;">Jan 16, 2024</div>
-                        </td>
-                        <td>
-                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <span style="background: #0984e3; color: white; padding: 5px 12px; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
                                 IN TRANSIT
                             </span>
                         </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">
-                                    <i class="fas fa-clock"></i> WAIT
-                                </button>
-                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <a href="{% url 'warehouse_process_receiving' po.id %}" class="btn" style="padding: 6px 14px; font-size: 11px; background: #00b894; border: 1px solid #00b894; color: white; text-decoration: none;">
+                                <i class="fas fa-box-open" style="margin-right: 5px;"></i> RECEIVE ITEMS
+                            </a>
                         </td>
                     </tr>
+                    {% empty %}
                     <tr>
-                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0014</td>
-                        <td>
-                            <div style="font-weight: 600; font-size: 14px;">Refreshment Wholesale</div>
-                            <div style="font-size: 12px; color: #666;">Contact: Mike Wilson</div>
-                        </td>
-                        <td>
-                            <div>7 items</div>
-                            <div style="font-size: 12px; color: #666;">Various beverages</div>
-                        </td>
-                        <td style="font-weight: 600; text-align: center;">200</td>
-                        <td>
-                            <div style="font-weight: 600;">Jan 18, 9:00 AM</div>
-                            <div style="font-size: 12px; color: #666;">3 days from now</div>
-                        </td>
-                        <td>
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">
-                                CONFIRMED
-                            </span>
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">
-                                    <i class="fas fa-edit"></i> EDIT
-                                </button>
-                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
+                        <td colspan="5" style="text-align: center; padding: 60px; color: #888;">
+                            <i class="fas fa-truck" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; margin-bottom: 8px;">No incoming shipments</div>
+                            <div style="font-size: 12px; color: #aaa;">Purchasing Officer must mark POs as 'In Transit' first</div>
                         </td>
                     </tr>
-                    <tr>
-                        <td style="font-weight: 600; font-size: 13px;">PO-2024-0015</td>
-                        <td>
-                            <div style="font-weight: 600; font-size: 14px;">Global Beverages</div>
-                            <div style="font-size: 12px; color: #666;">Contact: Emily Chen</div>
-                        </td>
-                        <td>
-                            <div>4 items</div>
-                            <div style="font-size: 12px; color: #666;">Premium drinks</div>
-                        </td>
-                        <td style="font-weight: 600; text-align: center;">95</td>
-                        <td>
-                            <div style="font-weight: 600;">Jan 19, 11:00 AM</div>
-                            <div style="font-size: 12px; color: #666;">4 days from now</div>
-                        </td>
-                        <td>
-                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">
-                                PENDING
-                            </span>
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 5px;">
-                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">
-                                    <i class="fas fa-check"></i> CONFIRM
-                                </button>
-                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    <i class="fas fa-eye"></i> VIEW
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="#" style="color: #000; font-weight: 600; font-size: 13px; text-decoration: none;">
-                <i class="fas fa-list" style="margin-right: 8px;"></i> VIEW ALL DELIVERY SCHEDULES
-            </a>
         </div>
     </div>
 </div>
 
-<!-- Recent Receivings -->
-<div class="card" style="margin-top: 40px;">
-    <div class="card-header">
-        <i class="fas fa-history" style="margin-right: 10px;"></i> RECENT RECEIVINGS
+<div class="card" style="border: 1px solid #eee;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+        <i class="fas fa-history" style="margin-right: 10px;"></i> RECEIVING HISTORY (RM)
     </div>
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-            <div style="padding: 20px; background: #f8f9fa; border-left: 4px solid #00b894;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="font-weight: 600; font-size: 16px;">REC-2024-001</div>
-                    <div style="font-size: 12px; color: #666;">2 hours ago</div>
-                </div>
-                <div style="font-size: 14px; margin-bottom: 10px;">Supplier: Beverage Distributors Inc.</div>
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Items</div>
-                        <div style="font-weight: 600;">8</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quantity</div>
-                        <div style="font-weight: 600;">150</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Status</div>
-                        <span style="font-weight: 600; color: #00b894;">COMPLETED</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="padding: 20px; background: #f8f9fa; border-left: 4px solid #fdcb6e;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="font-weight: 600; font-size: 16px;">REC-2024-002</div>
-                    <div style="font-size: 12px; color: #666;">Yesterday</div>
-                </div>
-                <div style="font-size: 14px; margin-bottom: 10px;">Supplier: Refreshment Wholesale</div>
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Items</div>
-                        <div style="font-weight: 600;">5</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quantity</div>
-                        <div style="font-weight: 600;">85</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Status</div>
-                        <span style="font-weight: 600; color: #fdcb6e;">PARTIAL</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="padding: 20px; background: #f8f9fa; border-left: 4px solid #0984e3;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="font-weight: 600; font-size: 16px;">REC-2024-003</div>
-                    <div style="font-size: 12px; color: #666;">Jan 12, 2024</div>
-                </div>
-                <div style="font-size: 14px; margin-bottom: 10px;">Supplier: Global Beverages</div>
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Items</div>
-                        <div style="font-weight: 600;">12</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quantity</div>
-                        <div style="font-weight: 600;">320</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Status</div>
-                        <span style="font-weight: 600; color: #0984e3;">COMPLETED</span>
-                    </div>
-                </div>
-            </div>
+    <div class="card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">RM NUMBER</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">PO REF</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">DR NUMBER</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">DATE RECEIVED</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rm in received_history %}
+                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; color: #000; font-family: monospace;">
+                            {{ rm.rm_number }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000; font-family: monospace;">
+                            {{ rm.purchase_order.po_number }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000; font-family: monospace;">
+                            {{ rm.delivery_receipt_no }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000;">
+                            {{ rm.date_received|date:"Y-m-d H:i" }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            {% if rm.status == 'accepted' %}
+                                <span style="color: #00b894; font-weight: 700; font-size: 12px; padding: 4px 10px; background: #e6fcf5; border: 1px solid #c3fae8;">
+                                    ACCEPTED
+                                </span>
+                            {% else %}
+                                <span style="color: #ff6b6b; font-weight: 700; font-size: 12px; padding: 4px 10px; background: #fff5f5; border: 1px solid #ffe3e3;">
+                                    REJECTED
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 60px; color: #888;">
+                            <i class="fas fa-inbox" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; margin-bottom: 5px;">No history yet</div>
+                            <div style="font-size: 12px; color: #aaa;">Receive incoming shipments to see history</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
