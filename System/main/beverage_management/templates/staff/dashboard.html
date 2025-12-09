@@ -3,560 +3,274 @@
 {% block title %}Staff Dashboard - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Dashboard Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>STAFF DASHBOARD</h1>
-        <p style="color: #666; margin-top: 10px;">Welcome, {{ user.first_name|default:user.username }}! View inventory and submit requisition requests.</p>
+        <p style="color: #666; margin-top: 10px;">Welcome, {{ user.first_name|default:user.username }}! 
+            <span style="font-weight: 700; color: #000;">{{ user.department }}</span>
+        </p>
     </div>
     <div style="display: flex; gap: 15px;">
-        <button class="btn" style="padding: 12px 24px; font-size: 13px;">
+        <button class="btn" onclick="location.reload();" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000;">
             <i class="fas fa-sync-alt"></i> REFRESH
         </button>
-        <a href="{% url 'staff_requisition' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
+        
+        {% if user.department == 'Requesting Party Department' %}
+        <a href="{% url 'staff_requisition' %}" class="btn" style="padding: 12px 24px; font-size: 13px; background: #000; color: white; border: 1px solid #000;">
             <i class="fas fa-plus-circle"></i> NEW REQUEST
         </a>
+        {% endif %}
     </div>
 </div>
 
-<!-- Main Stats Grid -->
 <div class="stats-grid" style="margin-bottom: 50px;">
-    <!-- Available Beverages -->
-    <div class="card stat-card">
+    {% if user.department == 'Requesting Party Department' %}
+    <div class="card stat-card" style="border: 1px solid #eee;">
         <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
             <i class="fas fa-wine-bottle"></i>
         </div>
-        <div class="stat-value">{{ available_beverages|default:"156" }}</div>
+        <div class="stat-value">{{ available_beverages }}</div>
         <div class="stat-label">Available Beverages</div>
         <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #00b894;">{{ categories|default:"8" }} categories</span>
+            <span style="color: #00b894;">{{ categories }} categories</span>
         </div>
     </div>
+    {% endif %}
     
-    <!-- My Requisitions -->
-    <div class="card stat-card">
+    {% if user.department == 'Sales Department' %}
+    <div class="card stat-card" style="border: 1px solid #eee;">
         <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
             <i class="fas fa-clipboard-list"></i>
         </div>
-        <div class="stat-value">{{ my_requisitions|default:"8" }}</div>
-        <div class="stat-label">My Requisitions</div>
+        <div class="stat-value">{{ my_requisitions }}</div>
+        <div class="stat-label">Total History</div>
         <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #0984e3;">{{ pending_approvals|default:"2" }} pending</span>
+            <span style="color: #0984e3;">All records</span>
         </div>
     </div>
+    {% endif %}
     
-    <!-- Pending Approvals -->
-    <div class="card stat-card">
+    {% if user.department == 'Requesting Party Department' %}
+    <div class="card stat-card" style="border: 1px solid #eee;">
         <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
             <i class="fas fa-clock"></i>
         </div>
-        <div class="stat-value">{{ pending_approvals|default:"2" }}</div>
+        <div class="stat-value">{{ pending_approvals }}</div>
         <div class="stat-label">Pending Approval</div>
-        <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #fdcb6e;">{{ awaiting_delivery|default:"3" }} for delivery</span>
-        </div>
     </div>
+    {% endif %}
     
-    <!-- Department -->
-    <div class="card stat-card">
+    <div class="card stat-card" style="border: 1px solid #eee;">
         <div class="stat-icon" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
             <i class="fas fa-building"></i>
         </div>
         <div class="stat-value" style="font-size: 24px; overflow: hidden; text-overflow: ellipsis;">
-            {{ user.department|default:"Sales"|truncatechars:12 }}
+            {{ user.department|truncatechars:12 }}
         </div>
         <div class="stat-label">Department</div>
-        <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #6c5ce7;">{{ department_requests|default:"15" }} total requests</span>
-        </div>
     </div>
 </div>
 
-<!-- Two Column Layout -->
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
-    <!-- Left Column: Recent Requisitions -->
-    <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <i class="fas fa-history" style="margin-right: 10px;"></i> RECENT REQUISITIONS
+    
+    {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
+    <div class="card" style="border: 1px solid #eee; grid-column: span 2;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-history" style="margin-right: 10px;"></i> RECENT REQUISITIONS HISTORY
             </div>
             <a href="{% url 'staff_my_requisitions' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
-                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> VIEW ALL
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> VIEW FULL HISTORY
             </a>
         </div>
-        <div class="card-body">
-            <!-- Requisition Progress -->
-            <div style="margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span style="font-weight: 600; font-size: 14px;">Request Success Rate</span>
-                    <span style="color: #666; font-size: 13px;">{{ success_rate|default:"85%" }} Approved</span>
-                </div>
-                <div style="height: 8px; background: #eee; border-radius: 0; overflow: hidden;">
-                    <div style="width: 85%; height: 100%; background: linear-gradient(90deg, #00b894, #0984e3);"></div>
-                </div>
-            </div>
-            
-            <!-- Requisition Table -->
+        <div class="card-body" style="padding: 0;">
             <div style="overflow-x: auto;">
-                <table class="table">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
                     <thead>
-                        <tr>
-                            <th>REQ ID</th>
-                            <th>STATUS</th>
-                            <th>ITEMS</th>
-                            <th>DATE</th>
-                            <th>ACTIONS</th>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">REQ ID</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">STATUS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">ITEMS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 30%;">DATE</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for req in recent_requisitions %}
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">{{ req.id|default:"REQ-001" }}</td>
-                            <td>
-                                {% if req.status == 'Approved' %}
-                                <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
-                                {% elif req.status == 'Pending' %}
-                                <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span>
-                                {% elif req.status == 'Delivered' %}
-                                <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">DELIVERED</span>
-                                {% elif req.status == 'Rejected' %}
-                                <span style="padding: 4px 10px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">REJECTED</span>
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 15px 12px; font-weight: 600; color: #000;">{{ req.rf_number }}</td>
+                            <td style="padding: 15px 12px;">
+                                {% if req.status == 'approved' %}
+                                <span style="padding: 5px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
+                                {% elif req.status == 'pending_dept_head' or req.status == 'pending_vp' %}
+                                <span style="padding: 5px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span>
+                                {% elif req.status == 'closed' %}
+                                <span style="padding: 5px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">CLOSED</span>
+                                {% elif req.status == 'rejected' %}
+                                <span style="padding: 5px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">REJECTED</span>
                                 {% else %}
-                                <span style="padding: 4px 10px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">{{ req.status|default:"PROCESSING"|upper }}</span>
+                                <span style="padding: 5px 12px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">{{ req.get_status_display|upper }}</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                <div>{{ req.items|default:"5" }} items</div>
-                                <div style="font-size: 12px; color: #666;">{{ req.quantity|default:"25" }} units</div>
-                            </td>
-                            <td style="font-size: 13px;">{{ req.date|default:"Jan 10" }}</td>
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-eye"></i> VIEW
-                                    </button>
-                                    {% if req.status == 'Pending' %}
-                                    <button style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-times"></i> CANCEL
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
+                            <td style="padding: 15px 12px; color: #666;">{{ req.items.count }} items</td>
+                            <td style="padding: 15px 12px; color: #666;">{{ req.date_created|date:"M d, Y" }}</td>
                         </tr>
                         {% empty %}
-                        <!-- Default requisitions if no data -->
                         <tr>
-                            <td style="font-weight: 600; font-size: 13px;">REQ-001</td>
-                            <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span></td>
-                            <td>
-                                <div>5 items</div>
-                                <div style="font-size: 12px; color: #666;">25 units</div>
-                            </td>
-                            <td style="font-size: 13px;">Jan 10</td>
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-eye"></i> VIEW
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">REQ-002</td>
-                            <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span></td>
-                            <td>
-                                <div>3 items</div>
-                                <div style="font-size: 12px; color: #666;">15 units</div>
-                            </td>
-                            <td style="font-size: 13px;">Jan 12</td>
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-eye"></i> VIEW
-                                    </button>
-                                    <button style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-times"></i> CANCEL
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">REQ-003</td>
-                            <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">DELIVERED</span></td>
-                            <td>
-                                <div>8 items</div>
-                                <div style="font-size: 12px; color: #666;">40 units</div>
-                            </td>
-                            <td style="font-size: 13px;">Jan 5</td>
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                        <i class="fas fa-eye"></i> VIEW
-                                    </button>
-                                </div>
-                            </td>
+                            <td colspan="4" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Requisition Summary -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; margin-top: 20px;">
-                <div>
-                    <div style="font-size: 20px; font-weight: 800; color: #00b894;">{{ approved_requisitions|default:"5" }}</div>
-                    <div style="font-size: 12px; color: #666;">Approved</div>
-                </div>
-                <div>
-                    <div style="font-size: 20px; font-weight: 800; color: #fdcb6e;">{{ pending_requisitions|default:"2" }}</div>
-                    <div style="font-size: 12px; color: #666;">Pending</div>
-                </div>
-                <div>
-                    <div style="font-size: 20px; font-weight: 800; color: #0984e3;">{{ delivered_requisitions|default:"3" }}</div>
-                    <div style="font-size: 12px; color: #666;">Delivered</div>
-                </div>
-                <div>
-                    <div style="font-size: 20px; font-weight: 800; color: #ff6b6b;">{{ rejected_requisitions|default:"0" }}</div>
-                    <div style="font-size: 12px; color: #666;">Rejected</div>
-                </div>
-            </div>
         </div>
     </div>
+    {% endif %}
     
-    <!-- Right Column: Inventory Alerts & Quick Access -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-bell" style="margin-right: 10px;"></i> INVENTORY ALERTS & QUICK ACCESS
+    {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
+    <div class="card" style="border: 1px solid #eee; grid-column: span 2;">
+        <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-bell" style="margin-right: 10px;"></i> LOW STOCK ALERTS
         </div>
-        <div class="card-body">
-            <!-- Inventory Alerts -->
-            <div style="margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="font-size: 14px; color: #666;">STOCK AVAILABILITY</h4>
-                    <a href="{% url 'staff_inventory' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
-                        <i class="fas fa-search" style="margin-right: 5px;"></i> BROWSE INVENTORY
-                    </a>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for alert in inventory_alerts %}
+                <div style="border: 1px solid #eee; padding: 15px; background: #fff; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: #fff3cd; display: flex; align-items: center; justify-content: center; color: #856404; border: 1px solid #ffc107;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">{{ alert.name }}</div>
+                            <div style="font-size: 12px; color: #666;">{{ alert.get_category_display }}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 800; font-size: 16px; color: #ffc107;">{{ alert.quantity }}</div>
+                        <div style="font-size: 11px; color: #666;">units left</div>
+                    </div>
                 </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    {% for alert in inventory_alerts %}
-                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: 
-                                    {% if alert.status == 'Low Stock' %}#fff3cd
-                                    {% elif alert.status == 'Out of Stock' %}#ff6b6b
-                                    {% else %}#d1ecf1
-                                    {% endif %}; 
-                                    border-radius: 0; display: flex; align-items: center; justify-content: center; color: 
-                                    {% if alert.status == 'Low Stock' %}#856404
-                                    {% elif alert.status == 'Out of Stock' %}white
-                                    {% else %}#0c5460
-                                    {% endif %};">
-                                    <i class="fas 
-                                        {% if alert.status == 'Low Stock' %}fa-exclamation-triangle
-                                        {% elif alert.status == 'Out of Stock' %}fa-times-circle
-                                        {% else %}fa-check-circle
-                                        {% endif %}">
-                                    </i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px;">{{ alert.item|default:"Coca-Cola 330ml" }}</div>
-                                    <div style="font-size: 12px; color: #666;">{{ alert.category|default:"Soft Drinks" }}</div>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 800; font-size: 16px; color: 
-                                    {% if alert.status == 'Low Stock' %}#ffc107
-                                    {% elif alert.status == 'Out of Stock' %}#ff6b6b
-                                    {% else %}#00b894
-                                    {% endif %};">
-                                    {{ alert.stock|default:"45" }}
-                                </div>
-                                <div style="font-size: 11px; color: #666;">units available</div>
-                            </div>
-                        </div>
-                        
-                        {% if alert.status == 'Low Stock' or alert.status == 'Out of Stock' %}
-                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                            <div style="font-size: 12px; color: #666;">
-                                {% if alert.status == 'Low Stock' %}
-                                ⚠️ Low stock level. Reorder soon.
-                                {% else %}
-                                ❌ Currently out of stock.
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% empty %}
-                    <!-- Default alerts if no data -->
-                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: #fff3cd; border-radius: 0; display: flex; align-items: center; justify-content: center; color: #856404;">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml</div>
-                                    <div style="font-size: 12px; color: #666;">Soft Drinks</div>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 800; font-size: 16px; color: #ffc107;">12</div>
-                                <div style="font-size: 11px; color: #666;">units available</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                            <div style="font-size: 12px; color: #666;">⚠️ Low stock level. Reorder soon.</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: #d1ecf1; border-radius: 0; display: flex; align-items: center; justify-content: center; color: #0c5460;">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px;">Red Bull 250ml</div>
-                                    <div style="font-size: 12px; color: #666;">Energy Drinks</div>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 800; font-size: 16px; color: #00b894;">45</div>
-                                <div style="font-size: 11px; color: #666;">units available</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="border: 1px solid #eee; padding: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: #ff6b6b; border-radius: 0; display: flex; align-items: center; justify-content: center; color: white;">
-                                    <i class="fas fa-times-circle"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px;">Mineral Water 500ml</div>
-                                    <div style="font-size: 12px; color: #666;">Water</div>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 800; font-size: 16px; color: #ff6b6b;">0</div>
-                                <div style="font-size: 11px; color: #666;">units available</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                            <div style="font-size: 12px; color: #666;">❌ Currently out of stock.</div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                {% empty %}
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    <i class="fas fa-check-circle" style="color: #00b894; font-size: 24px; margin-bottom: 10px;"></i>
+                    <p style="font-size: 13px;">All stock levels are healthy.</p>
                 </div>
-            </div>
-            
-            <!-- Quick Request Form -->
-            <div style="margin-top: 30px;">
-                <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">QUICK REQUEST</h4>
-                <div style="background: #f8f9fa; padding: 20px; border: 1px solid #eee;">
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Select Beverage Type</div>
-                        <select style="width: 100%; padding: 10px; border: 2px solid #eee; background: white; font-size: 14px;">
-                            <option value="">Choose beverage type...</option>
-                            <option value="soft_drinks">Soft Drinks</option>
-                            <option value="energy_drinks">Energy Drinks</option>
-                            <option value="juices">Juices</option>
-                            <option value="water">Water</option>
-                            <option value="coffee_tea">Coffee & Tea</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Quantity</div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <button style="width: 40px; height: 40px; background: #eee; border: none; font-size: 18px; cursor: pointer;">-</button>
-                            <input type="number" value="1" min="1" max="100" 
-                                   style="flex: 1; padding: 10px; border: 2px solid #eee; text-align: center; font-size: 16px;">
-                            <button style="width: 40px; height: 40px; background: #eee; border: none; font-size: 18px; cursor: pointer;">+</button>
-                        </div>
-                    </div>
-                    
-                    <button class="btn" style="width: 100%; padding: 12px; font-size: 14px;">
-                        <i class="fas fa-paper-plane"></i> SUBMIT QUICK REQUEST
-                    </button>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
+    <div class="card" style="border: 1px solid #eee; grid-column: span 2;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-history" style="margin-right: 10px;"></i>REQUISITIONS HISTORY
+            </div>  
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">REQ ID</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">STATUS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">ITEMS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 30%;">DATE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in recent_requisitions %}
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 15px 12px; font-weight: 600; color: #000;">{{ req.rf_number }}</td>
+                            <td style="padding: 15px 12px;">
+                                {% if req.status == 'approved' %}
+                                <span style="padding: 5px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
+                                {% elif req.status == 'pending_dept_head' or req.status == 'pending_vp' %}
+                                <span style="padding: 5px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span>
+                                {% elif req.status == 'closed' %}
+                                <span style="padding: 5px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">CLOSED</span>
+                                {% elif req.status == 'rejected' %}
+                                <span style="padding: 5px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600;">REJECTED</span>
+                                {% else %}
+                                <span style="padding: 5px 12px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">{{ req.get_status_display|upper }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 15px 12px; color: #666;">{{ req.items.count }} items</td>
+                            <td style="padding: 15px 12px; color: #666;">{{ req.date_created|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Popular Beverages Section -->
-<div class="card" style="margin-bottom: 40px;">
-    <div class="card-header">
+{% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
+<div class="card" style="border: 1px solid #eee; margin-bottom: 40px;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
         <i class="fas fa-fire" style="margin-right: 10px;"></i> POPULAR BEVERAGES
     </div>
-    <div class="card-body">
+    <div class="card-body" style="padding: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             {% for beverage in popular_beverages %}
-            <div class="card" style="text-align: center; padding: 20px; border: 1px solid #eee;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #00b894, #55efc4); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border-radius: 0;">
-                    <i class="fas 
-                        {% if beverage.category == 'Soft Drinks' %}fa-glass-whiskey
-                        {% elif beverage.category == 'Energy Drinks' %}fa-bolt
-                        {% elif beverage.category == 'Juices' %}fa-apple-alt
-                        {% elif beverage.category == 'Water' %}fa-tint
-                        {% else %}fa-coffee
-                        {% endif %}">
-                    </i>
+            <div style="border: 1px solid #eee; padding: 20px; text-align: center; background: #fff;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #00b894, #55efc4); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border: none;">
+                    <i class="fas fa-wine-bottle"></i>
                 </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px;">{{ beverage.name|default:"Coca-Cola" }}</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">{{ beverage.category|default:"Soft Drinks" }}</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">{{ beverage.stock|default:"45" }}</div>
+                <h4 style="font-size: 16px; margin-bottom: 8px; font-weight: 600;">{{ beverage.name }}</h4>
+                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">{{ beverage.get_category_display }}</div>
+                <div style="font-weight: 600; font-size: 18px; color: #000;">{{ beverage.quantity }}</div>
                 <div style="font-size: 12px; color: #666;">units in stock</div>
-                <button style="margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%;">
-                    <i class="fas fa-cart-plus"></i> ADD TO REQUEST
-                </button>
-            </div>
-            {% empty %}
-            <!-- Default popular beverages if no data -->
-            <div class="card" style="text-align: center; padding: 20px; border: 1px solid #eee;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border-radius: 0;">
-                    <i class="fas fa-glass-whiskey"></i>
-                </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px;">Coca-Cola</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">Soft Drinks</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">45</div>
-                <div style="font-size: 12px; color: #666;">units in stock</div>
-                <button style="margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%;">
-                    <i class="fas fa-cart-plus"></i> ADD TO REQUEST
-                </button>
-            </div>
-            
-            <div class="card" style="text-align: center; padding: 20px; border: 1px solid #eee;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #fdcb6e, #ffeaa7); color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border-radius: 0;">
-                    <i class="fas fa-bolt"></i>
-                </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px;">Red Bull</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">Energy Drinks</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">85</div>
-                <div style="font-size: 12px; color: #666;">units in stock</div>
-                <button style="margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%;">
-                    <i class="fas fa-cart-plus"></i> ADD TO REQUEST
-                </button>
-            </div>
-            
-            <div class="card" style="text-align: center; padding: 20px; border: 1px solid #eee;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #00b894, #55efc4); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border-radius: 0;">
-                    <i class="fas fa-apple-alt"></i>
-                </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px;">Orange Juice</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">Juices</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">65</div>
-                <div style="font-size: 12px; color: #666;">units in stock</div>
-                <button style="margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%;">
-                    <i class="fas fa-cart-plus"></i> ADD TO REQUEST
-                </button>
-            </div>
-            
-            <div class="card" style="text-align: center; padding: 20px; border: 1px solid #eee;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border-radius: 0;">
-                    <i class="fas fa-tint"></i>
-                </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px;">Mineral Water</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">Water</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">120</div>
-                <div style="font-size: 12px; color: #666;">units in stock</div>
-                <button style="margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%;">
-                    <i class="fas fa-cart-plus"></i> ADD TO REQUEST
-                </button>
+                <a href="{% url 'staff_requisition' %}" style="display: block; margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%; text-decoration: none; text-align: center;">
+                    <i class="fas fa-cart-plus"></i> REQUEST
+                </a>
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
+{% endif %}
 
-<!-- Quick Actions & Guide -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
-    <!-- Quick Actions -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-bolt" style="margin-right: 10px;"></i> QUICK ACTIONS
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <a href="{% url 'staff_inventory' %}" class="card" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #00b894; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 0;">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3 style="font-size: 16px; margin-bottom: 10px;">View Inventory</h3>
-                    <p style="color: #666; font-size: 13px;">Browse available beverages</p>
-                </a>
-                
-                <a href="{% url 'staff_requisition' %}" class="card" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #0984e3; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 0;">
-                        <i class="fas fa-plus-circle"></i>
-                    </div>
-                    <h3 style="font-size: 16px; margin-bottom: 10px;">Submit Requisition</h3>
-                    <p style="color: #666; font-size: 13px;">Create new beverage request</p>
-                </a>
-                
-                <a href="{% url 'staff_my_requisitions' %}" class="card" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #6c5ce7; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 0;">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <h3 style="font-size: 16px; margin-bottom: 10px;">My Requests</h3>
-                    <p style="color: #666; font-size: 13px;">Track your requisitions</p>
-                </a>
-                
-                <a href="#" class="card" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #fdcb6e; color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border-radius: 0;">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <h3 style="font-size: 16px; margin-bottom: 10px;">Usage History</h3>
-                    <p style="color: #666; font-size: 13px;">View past requests</p>
-                </a>
-            </div>
-        </div>
+<div class="card" style="border: 1px solid #eee;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+        <i class="fas fa-bolt" style="margin-right: 10px;"></i> QUICK ACTIONS
     </div>
-    
-    <!-- Quick Guide -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-question-circle" style="margin-right: 10px;"></i> QUICK GUIDE
-        </div>
-        <div class="card-body">
-            <div style="padding: 20px; background: #f8f9fa;">
-                <h4 style="font-size: 16px; margin-bottom: 15px; color: #000;">How to Request Beverages</h4>
-                <ol style="margin: 0; padding-left: 20px; font-size: 14px; color: #666; line-height: 1.6;">
-                    <li style="margin-bottom: 12px;">
-                        <strong>Browse Inventory:</strong> Check available stock before requesting
-                    </li>
-                    <li style="margin-bottom: 12px;">
-                        <strong>Create Request:</strong> Select items and quantities needed
-                    </li>
-                    <li style="margin-bottom: 12px;">
-                        <strong>Submit for Approval:</strong> Your request goes to Department Head → Management
-                    </li>
-                    <li style="margin-bottom: 12px;">
-                        <strong>Track Status:</strong> Monitor approval and delivery progress
-                    </li>
-                    <li>
-                        <strong>Receive Delivery:</strong> Items delivered to your department
-                    </li>
-                </ol>
-                
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                    <div style="font-size: 13px; color: #666;">
-                        <i class="fas fa-info-circle" style="margin-right: 8px; color: #0984e3;"></i>
-                        Typical approval time: 1-2 business days
-                    </div>
-                    <div style="font-size: 13px; color: #666; margin-top: 8px;">
-                        <i class="fas fa-clock" style="margin-right: 8px; color: #fdcb6e;"></i>
-                        Delivery: Within 24 hours after approval
-                    </div>
+    <div class="card-body" style="padding: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            
+            {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
+            <a href="{% url 'staff_inventory' %}" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee; background: #fff;">
+                <div style="width: 50px; height: 50px; background: #00b894; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border: none;">
+                    <i class="fas fa-search"></i>
                 </div>
-            </div>
+                <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 600;">View Inventory</h3>
+                <p style="color: #666; font-size: 13px;">Browse available beverages</p>
+            </a>
+            
+            <a href="{% url 'staff_requisition' %}" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee; background: #fff;">
+                <div style="width: 50px; height: 50px; background: #0984e3; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border: none;">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 600;">Submit Requisition</h3>
+                <p style="color: #666; font-size: 13px;">Create new beverage request</p>
+            </a>
+            {% endif %}
+            
+            {% if user.department == 'Sales Department' %}
+            <a href="{% url 'staff_my_requisitions' %}" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee; background: #fff;">
+                <div style="width: 50px; height: 50px; background: #6c5ce7; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border: none;">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 600;">Requisition History</h3>
+                <p style="color: #666; font-size: 13px;">View global request logs</p>
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>

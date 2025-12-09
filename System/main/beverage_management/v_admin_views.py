@@ -1,90 +1,80 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Count, F, Q
 from django.core.paginator import Paginator
-from .models import User  # Adjust the import path based on your project structure
+from .models import User, InventoryItem, PurchaseOrder, RequisitionForm, StockAdjustment, Supplier, RequisitionItem
 
 @login_required
 def admin_dashboard_view(request):
-    # Check if user is admin
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('home')
     
-    # Mock data for admin dashboard based on requirements
+    # --- 1. SYSTEM HEALTH (Global) ---
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+    
+    # --- 2. WAREHOUSE MODULE ANALYTICS ---
+    inventory_value = InventoryItem.objects.aggregate(total=Sum(F('quantity') * F('cost_price')))['total'] or 0
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).count()
+    out_of_stock_items = InventoryItem.objects.filter(quantity__lte=0).count()
+    recent_stock_moves = StockAdjustment.objects.select_related('item', 'user').order_by('-timestamp')[:5]
+
+    # --- 3. PURCHASING MODULE ANALYTICS ---
+    active_pos = PurchaseOrder.objects.filter(status__in=['ordered', 'in_transit']).count()
+    completed_pos = PurchaseOrder.objects.filter(status='completed').count()
+    total_suppliers = Supplier.objects.filter(is_active=True).count()
+    recent_pos = PurchaseOrder.objects.select_related('supplier').order_by('-date_created')[:5]
+
+    # --- 4. STAFF/REQUISITION MODULE ANALYTICS ---
+    pending_reqs = RequisitionForm.objects.filter(status__in=['pending_dept_head', 'pending_vp']).count()
+    approved_reqs = RequisitionForm.objects.filter(status='approved').count()
+    recent_reqs = RequisitionForm.objects.filter(status__in=['pending_dept_head', 'pending_vp', 'approved']).select_related('requester').order_by('-date_created')[:5]
+    
+    # --- 5. SALES ANALYTICS (Closed Requisitions) ---
+    total_sales_count = RequisitionForm.objects.filter(status='closed').count()
+    
+    # Calculate Total Sales Value (Sum of quantity * cost_price for items in closed requisitions)
+    total_sales_value = RequisitionItem.objects.filter(requisition__status='closed').aggregate(
+        total=Sum(F('quantity_requested') * F('item__cost_price'))
+    )['total'] or 0
+    
+    # Recent Sales List
+    recent_sales = RequisitionForm.objects.filter(status='closed').select_related('requester').order_by('-date_created')[:5]
+
+    # --- 6. DEPARTMENT USAGE ---
+    dept_usage = RequisitionForm.objects.values('department').annotate(request_count=Count('id')).order_by('-request_count')[:5]
+
     context = {
         'user': request.user,
-        'total_inventory_value': 125847,
-        'low_stock_alerts': 12,
-        'pending_purchase_orders': 8,
-        'delivery_status_overview': {
-            'delivered': 24,
-            'in_transit': 4,
-            'pending': 2,
-            'delayed': 0,
-            'total': 30
+        'analytics': {
+            'inventory_value': inventory_value,
+            'low_stock': low_stock_items,
+            'out_of_stock': out_of_stock_items,
+            'active_pos': active_pos,
+            'completed_pos': completed_pos,
+            'total_suppliers': total_suppliers,
+            'pending_reqs': pending_reqs,
+            'approved_reqs': approved_reqs,
+            'total_users': total_users,
+            'active_users': active_users,
+            # New Sales Stats
+            'total_sales_count': total_sales_count,
+            'total_sales_value': total_sales_value
         },
-        'recent_audit_logs': [
-            {
-                'timestamp': '2024-01-15 14:30',
-                'user': 'admin@company.com',
-                'action_type': 'update',
-                'module': 'Inventory',
-                'details': 'Updated stock quantity for Coca-Cola 330ml',
-                'ip': '192.168.1.100'
-            },
-            {
-                'timestamp': '2024-01-15 10:15',
-                'user': 'warehouse@company.com',
-                'action_type': 'create',
-                'module': 'Purchase',
-                'details': 'Created new purchase order #PO-2024-001',
-                'ip': '192.168.1.101'
-            },
-            {
-                'timestamp': '2024-01-14 16:45',
-                'user': 'purchasing@company.com',
-                'action_type': 'login',
-                'module': 'System',
-                'details': 'User logged in from new device',
-                'ip': '192.168.1.102'
-            },
-            {
-                'timestamp': '2024-01-14 09:20',
-                'user': 'staff@company.com',
-                'action_type': 'create',
-                'module': 'Requisition',
-                'details': 'Submitted new beverage requisition',
-                'ip': '192.168.1.103'
-            },
-            {
-                'timestamp': '2024-01-13 11:00',
-                'user': 'admin@company.com',
-                'action_type': 'create',
-                'module': 'Users',
-                'details': 'Added new user: warehouse@company.com',
-                'ip': '192.168.1.100'
-            },
-        ],
-        'low_stock_items': [
-            {'name': 'Coca-Cola 330ml', 'sku': 'BEV-001', 'stock': 12},
-            {'name': 'Pepsi 500ml', 'sku': 'BEV-002', 'stock': 8},
-            {'name': 'Red Bull 250ml', 'sku': 'BEV-015', 'stock': 15},
-            {'name': 'Sprite 1L', 'sku': 'BEV-003', 'stock': 10},
-            {'name': 'Mineral Water 500ml', 'sku': 'BEV-020', 'stock': 20},
-        ],
-        'pending_po_list': [
-            {'number': 'PO-2024-001', 'supplier': 'Beverage Supply Co.', 'amount': '3,250', 'status': 'Pending'},
-            {'number': 'PO-2024-002', 'supplier': 'Drinks Distributors', 'amount': '5,800', 'status': 'Approved'},
-            {'number': 'PO-2024-003', 'supplier': 'Refreshment Wholesale', 'amount': '2,150', 'status': 'Pending'},
-            {'number': 'PO-2024-004', 'supplier': 'Global Beverages', 'amount': '4,750', 'status': 'Pending'},
-            {'number': 'PO-2024-005', 'supplier': 'Premium Drinks Ltd.', 'amount': '6,200', 'status': 'Approved'},
-        ],
-        'quick_stats': {
-            'total_users': 24,
-            'active_suppliers': 12,
-            'total_products': 156,
-            'monthly_orders': 48
+        'warehouse_data': {
+            'recent_moves': recent_stock_moves
+        },
+        'purchasing_data': {
+            'recent_pos': recent_pos
+        },
+        'staff_data': {
+            'recent_reqs': recent_reqs,
+            'dept_usage': dept_usage
+        },
+        'sales_data': {
+            'recent_sales': recent_sales
         }
     }
     return render(request, 'admin/dashboard.html', context)
@@ -230,3 +220,29 @@ def admin_system_settings_view(request):
         'page_title': 'System Settings'
     }
     return render(request, 'admin/system_settings.html', context)
+
+@login_required
+def admin_edit_user_view(request, user_id):
+    # Security check
+    if request.user.role != 'admin' or not request.user.is_approved:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    user_to_edit = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        # Update standard fields
+        user_to_edit.first_name = request.POST.get('first_name', user_to_edit.first_name)
+        user_to_edit.last_name = request.POST.get('last_name', user_to_edit.last_name)
+        user_to_edit.email = request.POST.get('email', user_to_edit.email)
+        
+        # Update custom fields
+        user_to_edit.phone = request.POST.get('phone', user_to_edit.phone)
+        user_to_edit.department = request.POST.get('department', user_to_edit.department)
+        user_to_edit.role = request.POST.get('role', user_to_edit.role)
+        
+        user_to_edit.save()
+        
+        messages.success(request, f'Profile for {user_to_edit.email} has been updated.')
+        
+    return redirect('admin_user_detail', user_id=user_id)

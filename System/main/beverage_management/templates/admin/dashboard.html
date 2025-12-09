@@ -1,540 +1,326 @@
 {% extends 'base.html' %}
 
-{% block title %}Admin Dashboard - Beverage ERP{% endblock %}
+{% block title %}Master Command - Admin{% endblock %}
 
 {% block content %}
-<!-- Dashboard Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
-        <h1>ADMIN DASHBOARD</h1>
-        <p style="color: #666; margin-top: 10px;">System overview and administrative controls</p>
+        <h1>EXECUTIVE DASHBOARD</h1>
+        <p style="color: #666; margin-top: 10px;">Monitor system performance, inventory status, and operational metrics.</p>
     </div>
     <div style="display: flex; gap: 15px;">
-        <button class="btn" style="padding: 12px 24px; font-size: 13px;">
+        <button onclick="location.reload();" class="btn" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000;">
             <i class="fas fa-sync-alt"></i> REFRESH
         </button>
-        <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-download"></i> EXPORT
-        </button>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; background: #f8f9fa; border: 1px solid #eee; color: #666; font-size: 13px;">
+            <div style="width: 8px; height: 8px; background: #00b894;"></div>
+            <span style="font-weight: 600;">SYSTEM OPERATIONAL</span>
+        </div>
     </div>
 </div>
 
-<!-- Main Stats Grid -->
 <div class="stats-grid" style="margin-bottom: 50px;">
-    <!-- Total Inventory Value -->
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #000000, #333333);">
-            <i class="fas fa-money-bill-wave"></i>
+    <div class="card stat-card" style="border: 1px solid #eee;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #1a1a1a, #2d3436); border: none;">
+            <i class="fas fa-boxes"></i>
         </div>
-        <div class="stat-value">${{ total_inventory_value|default:"125,847" }}</div>
-        <div class="stat-label">Inventory Value</div>
+        <div class="stat-value">${{ analytics.inventory_value|floatformat:2 }}</div>
+        <div class="stat-label">Total Valuation</div>
         <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #00b894;">↑ 5.2%</span> from last month
+            <span style="color: #1a1a1a;">Current Inventory Value</span>
         </div>
     </div>
     
-    <!-- Low Stock Alerts -->
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+    <div class="card stat-card" style="border: 1px solid #eee;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4); border: none;">
+            <i class="fas fa-hand-holding-usd"></i>
+        </div>
+        <div class="stat-value">${{ analytics.total_sales_value|floatformat:2 }}</div>
+        <div class="stat-label">Total Sales</div>
+        <div style="margin-top: 15px; font-size: 13px; color: #666;">
+            <span style="color: #00b894;">{{ analytics.total_sales_count }} Transactions</span>
+        </div>
+    </div>
+    
+    <div class="card stat-card" style="border: 1px solid #eee;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #d63031, #ff7675); border: none;">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <div class="stat-value">{{ low_stock_alerts|default:"12" }}</div>
-        <div class="stat-label">Low Stock Alerts</div>
+        <div class="stat-value">{{ analytics.low_stock }}</div>
+        <div class="stat-label">Critical Stock</div>
         <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #ff6b6b;">↑ 3 new</span> this week
+            <span style="color: #d63031;">Requires Attention</span>
         </div>
     </div>
-    
-    <!-- Pending Purchase Orders -->
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
-            <i class="fas fa-clipboard-list"></i>
+
+    <div class="card stat-card" style="border: 1px solid #eee;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff); border: none;">
+            <i class="fas fa-shopping-cart"></i>
         </div>
-        <div class="stat-value">{{ pending_purchase_orders|default:"8" }}</div>
-        <div class="stat-label">Pending POs</div>
+        <div class="stat-value">{{ analytics.active_pos }}</div>
+        <div class="stat-label">Active Orders</div>
         <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #0984e3;">$24,500</span> total value
-        </div>
-    </div>
-    
-    <!-- Delivery Status -->
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
-            <i class="fas fa-truck"></i>
-        </div>
-        <div class="stat-value">{{ delivery_status_overview.delivered|default:"24" }}/{{ delivery_status_overview.total|default:"30" }}</div>
-        <div class="stat-label">Deliveries Complete</div>
-        <div style="margin-top: 15px; font-size: 13px; color: #666;">
-            <span style="color: #00b894;">80%</span> on-time rate
+            <span style="color: #0984e3;">In Transit / Ordered</span>
         </div>
     </div>
 </div>
 
-<!-- Two Column Layout -->
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
-    <!-- Left Column: Delivery Status Overview -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-truck-loading" style="margin-right: 10px;"></i> DELIVERY STATUS OVERVIEW
+    <div class="card" style="border: 1px solid #eee;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-hand-holding-usd" style="margin-right: 10px;"></i> RECENT SALES & DISTRIBUTION
+            </div>
+            <a href="#" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> VIEW ALL
+            </a>
         </div>
-        <div class="card-body">
-            <!-- Delivery Progress -->
-            <div style="margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span style="font-weight: 600; font-size: 14px;">Monthly Delivery Progress</span>
-                    <span style="color: #666; font-size: 13px;">80% Complete</span>
-                </div>
-                <div style="height: 8px; background: #eee; border-radius: 0; overflow: hidden;">
-                    <div style="width: 80%; height: 100%; background: linear-gradient(90deg, #00b894, #55efc4);"></div>
-                </div>
-            </div>
-            
-            <!-- Status Breakdown -->
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                <div style="text-align: center;">
-                    <div style="font-size: 28px; font-weight: 800; color: #00b894;">{{ delivery_status_overview.delivered|default:"24" }}</div>
-                    <div style="font-size: 13px; color: #666;">Delivered</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 28px; font-weight: 800; color: #0984e3;">{{ delivery_status_overview.in_transit|default:"4" }}</div>
-                    <div style="font-size: 13px; color: #666;">In Transit</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 28px; font-weight: 800; color: #fdcb6e;">{{ delivery_status_overview.pending|default:"2" }}</div>
-                    <div style="font-size: 13px; color: #666;">Pending</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 28px; font-weight: 800; color: #ff7675;">{{ delivery_status_overview.delayed|default:"0" }}</div>
-                    <div style="font-size: 13px; color: #666;">Delayed</div>
-                </div>
-            </div>
-            
-            <!-- Recent Deliveries -->
-            <div style="margin-top: 30px;">
-                <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">RECENT DELIVERIES</h4>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 13px;">Beverage Supply Co.</div>
-                            <div style="font-size: 12px; color: #666;">PO #2024-0012</div>
-                        </div>
-                        <span style="padding: 4px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">DELIVERED</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 13px;">Drinks Distributors</div>
-                            <div style="font-size: 12px; color: #666;">PO #2024-0013</div>
-                        </div>
-                        <span style="padding: 4px 12px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">IN TRANSIT</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Right Column: Low Stock Alerts -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i> LOW STOCK ALERTS
-        </div>
-        <div class="card-body">
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span style="font-weight: 600; font-size: 14px;">Critical Items</span>
-                    <a href="#" style="font-size: 12px; color: #000; font-weight: 600;">VIEW ALL</a>
-                </div>
-                
-                <!-- Low Stock Items -->
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    {% for item in low_stock_items|slice:":5" %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 14px;">{{ item.name|default:"Coca-Cola 330ml" }}</div>
-                            <div style="font-size: 12px; color: #666;">SKU: {{ item.sku|default:"BEV-001" }}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ff6b6b; font-size: 16px;">{{ item.stock|default:"12" }}</div>
-                            <div style="font-size: 11px; color: #666;">units left</div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <!-- Default items if no data -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml</div>
-                            <div style="font-size: 12px; color: #666;">SKU: BEV-001</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ff6b6b; font-size: 16px;">12</div>
-                            <div style="font-size: 11px; color: #666;">units left</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 14px;">Pepsi 500ml</div>
-                            <div style="font-size: 12px; color: #666;">SKU: BEV-002</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ff6b6b; font-size: 16px;">8</div>
-                            <div style="font-size: 11px; color: #666;">units left</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff8f8; border-left: 4px solid #ff6b6b;">
-                        <div>
-                            <div style="font-weight: 600; font-size: 14px;">Red Bull 250ml</div>
-                            <div style="font-size: 12px; color: #666;">SKU: BEV-015</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ff6b6b; font-size: 16px;">15</div>
-                            <div style="font-size: 11px; color: #666;">units left</div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Reorder Recommendations -->
-            <div style="margin-top: 30px;">
-                <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">RECOMMENDED ACTIONS</h4>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" style="padding: 10px 20px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-cart-plus"></i> CREATE PO
-                    </button>
-                    <button class="btn btn-secondary" style="padding: 10px 20px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-chart-line"></i> ANALYZE
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Second Row: Pending POs and Quick Stats -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
-    <!-- Pending Purchase Orders -->
-    <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <i class="fas fa-file-invoice-dollar" style="margin-right: 10px;"></i> PENDING PURCHASE ORDERS
-            </div>
-            <span style="padding: 4px 12px; background: #000; color: white; font-size: 12px; font-weight: 600;">{{ pending_purchase_orders|default:"8" }} PENDING</span>
-        </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 0;">
             <div style="overflow-x: auto;">
-                <table class="table">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
                     <thead>
-                        <tr>
-                            <th>PO #</th>
-                            <th>SUPPLIER</th>
-                            <th>AMOUNT</th>
-                            <th>STATUS</th>
-                            <th>ACTION</th>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 30%;">TRANS ID</th>
+                            <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 40%;">DEPARTMENT</th>
+                            <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 30%;">ITEMS</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for po in pending_po_list|slice:":5" %}
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">{{ po.number|default:"PO-2024-001" }}</td>
-                            <td>{{ po.supplier|default:"Beverage Supply Co." }}</td>
-                            <td style="font-weight: 600; color: #000;">${{ po.amount|default:"3,250" }}</td>
-                            <td>
-                                {% if po.status == 'Pending' %}
-                                <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span>
-                                {% elif po.status == 'Approved' %}
-                                <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">APPROVED</span>
-                                {% else %}
-                                <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">{{ po.status|upper }}</span>
-                                {% endif %}
+                        {% for sale in sales_data.recent_sales %}
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; font-family: monospace; color: #000;">
+                                {{ sale.rf_number }}
                             </td>
-                            <td>
-                                <button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">
-                                    REVIEW
-                                </button>
+                            <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 14px; color: #000;">
+                                {{ sale.department }}
+                            </td>
+                            <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                                <span style="padding: 5px 12px; background: #f5f5f5; color: #000; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                                    {{ sale.items.count }} ITEMS
+                                </span>
                             </td>
                         </tr>
                         {% empty %}
-                        <!-- Default rows if no data -->
                         <tr>
-                            <td style="font-weight: 600; font-size: 13px;">PO-2024-001</td>
-                            <td>Beverage Supply Co.</td>
-                            <td style="font-weight: 600; color: #000;">$3,250</td>
-                            <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span></td>
-                            <td><button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">REVIEW</button></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">PO-2024-002</td>
-                            <td>Drinks Distributors</td>
-                            <td style="font-weight: 600; color: #000;">$5,800</td>
-                            <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">APPROVED</span></td>
-                            <td><button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">VIEW</button></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; font-size: 13px;">PO-2024-003</td>
-                            <td>Refreshment Wholesale</td>
-                            <td style="font-weight: 600; color: #000;">$2,150</td>
-                            <td><span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PENDING</span></td>
-                            <td><button style="padding: 6px 12px; background: transparent; border: 1px solid #000; color: #000; font-size: 11px; cursor: pointer;">REVIEW</button></td>
+                            <td colspan="3" style="text-align: center; padding: 40px; color: #888;">
+                                <i class="fas fa-hand-holding-usd" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                                <div style="font-size: 14px; margin-bottom: 5px;">No recent sales</div>
+                                <div style="font-size: 12px; color: #aaa;">Sales data will appear here</div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            
-            <div style="text-align: center; margin-top: 20px;">
-                <a href="#" style="color: #000; font-weight: 600; font-size: 13px; text-decoration: none;">
-                    <i class="fas fa-arrow-right" style="margin-right: 8px;"></i> VIEW ALL PURCHASE ORDERS
+        </div>
+    </div>
+
+    <div class="card" style="border: 1px solid #eee;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-warehouse" style="margin-right: 10px;"></i> WAREHOUSE OPERATIONS
+            </div>
+            <a href="{% url 'warehouse_dashboard' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> GO TO MODULE
+            </a>
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #d63031;">{{ analytics.out_of_stock }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Out of Stock</div>
+                </div>
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #1a1a1a;">${{ analytics.inventory_value|floatformat:0 }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Asset Value</div>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">ITEM</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">ACTION</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">TIME</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for move in warehouse_data.recent_moves %}
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 13px; color: #000;">
+                                {{ move.item.name|truncatechars:20 }}
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle;">
+                                <span style="padding: 5px 10px; background: #f5f5f5; color: #666; font-size: 10px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                                    {{ move.get_adjustment_type_display|upper }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-size: 12px; color: #666;">
+                                {{ move.timestamp|timesince }} ago
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #888;">
+                                <i class="fas fa-warehouse" style="font-size: 24px; color: #ddd; margin-bottom: 10px; display: block;"></i>
+                                <div style="font-size: 12px;">No recent movement</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <div class="card" style="border: 1px solid #eee;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-shopping-cart" style="margin-right: 10px;"></i> PROCUREMENT STATUS
+            </div>
+            <a href="{% url 'purchasing_dashboard' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> GO TO MODULE
+            </a>
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #0984e3;">{{ analytics.active_pos }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Active Orders</div>
+                </div>
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #1a1a1a;">{{ analytics.total_suppliers }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Suppliers</div>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">PO #</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">SUPPLIER</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in purchasing_data.recent_pos %}
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; font-family: monospace; color: #000;">
+                                {{ po.po_number }}
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 13px; color: #000;">
+                                {{ po.supplier.name|truncatechars:15 }}
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle;">
+                                {% if po.status == 'completed' %}
+                                    <span style="padding: 5px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">COMPLETED</span>
+                                {% elif po.status == 'in_transit' %}
+                                    <span style="padding: 5px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">IN TRANSIT</span>
+                                {% else %}
+                                    <span style="padding: 5px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">ORDERED</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #888;">
+                                <i class="fas fa-shopping-cart" style="font-size: 24px; color: #ddd; margin-bottom: 10px; display: block;"></i>
+                                <div style="font-size: 12px;">No recent orders</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border: 1px solid #eee;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 20px;">
+            <div style="font-weight: 600; font-size: 14px;">
+                <i class="fas fa-users" style="margin-right: 10px;"></i> STAFF REQUESTS
+            </div>
+            <a href="{% url 'staff_dashboard' %}" style="font-size: 12px; color: #000; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-external-link-alt" style="margin-right: 5px;"></i> GO TO MODULE
+            </a>
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #fdcb6e;">{{ analytics.pending_reqs }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Pending</div>
+                </div>
+                <div style="text-align: center; padding: 15px; border: 1px solid #eee; background: #fff;">
+                    <div style="font-size: 24px; font-weight: 800; color: #00b894;">{{ analytics.approved_reqs }}</div>
+                    <div style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; margin-top: 5px;">Approved</div>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">REQ #</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">DEPT</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in staff_data.recent_reqs %}
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; font-family: monospace; color: #000;">
+                                {{ req.rf_number }}
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 13px; color: #000;">
+                                {{ req.department }}
+                            </td>
+                            <td style="padding: 12px; text-align: left; vertical-align: middle;">
+                                {% if req.status == 'approved' %}
+                                    <span style="padding: 5px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">APPROVED</span>
+                                {% elif req.status == 'rejected' %}
+                                    <span style="padding: 5px 10px; background: #d63031; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">REJECTED</span>
+                                {% else %}
+                                    <span style="padding: 5px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">PENDING</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #888;">
+                                <i class="fas fa-users" style="font-size: 24px; color: #ddd; margin-bottom: 10px; display: block;"></i>
+                                <div style="font-size: 12px;">No recent requests</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="card" style="border: 1px solid #eee; background: #f8f9fa;">
+        <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-bolt" style="margin-right: 10px;"></i> QUICK ACTIONS
+        </div>
+        <div class="card-body" style="padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="#" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: white; border: 1px solid #eee; color: #000; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    <span>Inventory Overview</span>
+                    <i class="fas fa-chevron-right" style="color: #666; font-size: 12px;"></i>
+                </a>
+                <a href="#" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: white; border: 1px solid #eee; color: #000; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    <span>Financial Reports</span>
+                    <i class="fas fa-chevron-right" style="color: #666; font-size: 12px;"></i>
+                </a>
+                <a href="#" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: white; border: 1px solid #eee; color: #000; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    <span>User Management</span>
+                    <i class="fas fa-chevron-right" style="color: #666; font-size: 12px;"></i>
                 </a>
             </div>
         </div>
-    </div>
-    
-    <!-- Quick Stats -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-chart-bar" style="margin-right: 10px;"></i> QUICK STATISTICS
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
-                <div style="text-align: center;">
-                    <div style="font-size: 32px; font-weight: 800; color: #000;">{{ quick_stats.total_users|default:"24" }}</div>
-                    <div style="font-size: 13px; color: #666;">Active Users</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 32px; font-weight: 800; color: #000;">{{ quick_stats.active_suppliers|default:"12" }}</div>
-                    <div style="font-size: 13px; color: #666;">Suppliers</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 32px; font-weight: 800; color: #000;">{{ quick_stats.total_products|default:"156" }}</div>
-                    <div style="font-size: 13px; color: #666;">Products</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 32px; font-weight: 800; color: #000;">{{ quick_stats.monthly_orders|default:"48" }}</div>
-                    <div style="font-size: 13px; color: #666;">Orders/Month</div>
-                </div>
-            </div>
-            
-            <!-- System Health -->
-            <div style="margin-top: 20px;">
-                <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">SYSTEM HEALTH</h4>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="font-size: 13px;">Database Performance</span>
-                            <span style="font-size: 13px; font-weight: 600; color: #00b894;">98%</span>
-                        </div>
-                        <div style="height: 6px; background: #eee; border-radius: 0;">
-                            <div style="width: 98%; height: 100%; background: #00b894;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="font-size: 13px;">Storage Utilization</span>
-                            <span style="font-size: 13px; font-weight: 600; color: #0984e3;">65%</span>
-                        </div>
-                        <div style="height: 6px; background: #eee; border-radius: 0;">
-                            <div style="width: 65%; height: 100%; background: #0984e3;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="font-size: 13px;">Uptime (30 days)</span>
-                            <span style="font-size: 13px; font-weight: 600; color: #00b894;">99.9%</span>
-                        </div>
-                        <div style="height: 6px; background: #eee; border-radius: 0;">
-                            <div style="width: 99.9%; height: 100%; background: #00b894;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Audit Logs Section -->
-<div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <i class="fas fa-history" style="margin-right: 10px;"></i> AUDIT LOGS
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="padding: 8px 16px; font-size: 12px;">
-                <i class="fas fa-filter"></i> FILTER
-            </button>
-            <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;">
-                <i class="fas fa-file-export"></i> EXPORT LOGS
-            </button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div style="overflow-x: auto;">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>TIMESTAMP</th>
-                        <th>USER</th>
-                        <th>ACTION</th>
-                        <th>MODULE</th>
-                        <th>DETAILS</th>
-                        <th>IP ADDRESS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in recent_audit_logs %}
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">{{ log.timestamp|default:"2024-01-15 14:30" }}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    {{ log.user|slice:":2"|upper }}
-                                </div>
-                                <span style="font-size: 13px;">{{ log.user|default:"admin@company.com" }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            {% if log.action_type == 'login' %}
-                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">LOGIN</span>
-                            {% elif log.action_type == 'update' %}
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">UPDATE</span>
-                            {% elif log.action_type == 'create' %}
-                            <span style="padding: 4px 10px; background: #00cec9; color: white; font-size: 11px; font-weight: 600;">CREATE</span>
-                            {% elif log.action_type == 'delete' %}
-                            <span style="padding: 4px 10px; background: #ff7675; color: white; font-size: 11px; font-weight: 600;">DELETE</span>
-                            {% else %}
-                            <span style="padding: 4px 10px; background: #636e72; color: white; font-size: 11px; font-weight: 600;">{{ log.action_type|default:"ACTION"|upper }}</span>
-                            {% endif %}
-                        </td>
-                        <td style="font-size: 13px;">{{ log.module|default:"Inventory" }}</td>
-                        <td style="font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            {{ log.details|default:"Updated stock quantity for Coca-Cola 330ml" }}
-                        </td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">{{ log.ip|default:"192.168.1.100" }}</td>
-                    </tr>
-                    {% empty %}
-                    <!-- Default audit logs if no data -->
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">2024-01-15 14:30</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    AD
-                                </div>
-                                <span style="font-size: 13px;">admin@company.com</span>
-                            </div>
-                        </td>
-                        <td><span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">UPDATE</span></td>
-                        <td style="font-size: 13px;">Inventory</td>
-                        <td style="font-size: 13px;">Updated stock quantity for Coca-Cola 330ml</td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">192.168.1.100</td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">2024-01-15 10:15</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    WM
-                                </div>
-                                <span style="font-size: 13px;">warehouse@company.com</span>
-                            </div>
-                        </td>
-                        <td><span style="padding: 4px 10px; background: #00cec9; color: white; font-size: 11px; font-weight: 600;">CREATE</span></td>
-                        <td style="font-size: 13px;">Purchase</td>
-                        <td style="font-size: 13px;">Created new purchase order #PO-2024-001</td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">192.168.1.101</td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">2024-01-14 16:45</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    PO
-                                </div>
-                                <span style="font-size: 13px;">purchasing@company.com</span>
-                            </div>
-                        </td>
-                        <td><span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">LOGIN</span></td>
-                        <td style="font-size: 13px;">System</td>
-                        <td style="font-size: 13px;">User logged in from new device</td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">192.168.1.102</td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">2024-01-14 09:20</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    ST
-                                </div>
-                                <span style="font-size: 13px;">staff@company.com</span>
-                            </div>
-                        </td>
-                        <td><span style="padding: 4px 10px; background: #00cec9; color: white; font-size: 11px; font-weight: 600;">CREATE</span></td>
-                        <td style="font-size: 13px;">Requisition</td>
-                        <td style="font-size: 13px;">Submitted new beverage requisition</td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">192.168.1.103</td>
-                    </tr>
-                    <tr>
-                        <td style="font-size: 13px; color: #666;">2024-01-13 11:00</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
-                                    AD
-                                </div>
-                                <span style="font-size: 13px;">admin@company.com</span>
-                            </div>
-                        </td>
-                        <td><span style="padding: 4px 10px; background: #00cec9; color: white; font-size: 11px; font-weight: 600;">CREATE</span></td>
-                        <td style="font-size: 13px;">Users</td>
-                        <td style="font-size: 13px;">Added new user: warehouse@company.com</td>
-                        <td style="font-size: 12px; color: #666; font-family: monospace;">192.168.1.100</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="#" style="color: #000; font-weight: 600; font-size: 13px; text-decoration: none;">
-                <i class="fas fa-search" style="margin-right: 8px;"></i> VIEW COMPLETE AUDIT HISTORY
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Links -->
-<div style="margin-top: 40px;">
-    <h2 style="margin-bottom: 20px;">QUICK LINKS</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-        <a href="{% url 'admin_users' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
-            <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
-                <i class="fas fa-users"></i>
-            </div>
-            <h3 style="font-size: 16px; margin-bottom: 10px;">User Management</h3>
-            <p style="color: #666; font-size: 13px;">Approve and manage users</p>
-        </a>
-
-        
-        <a href="#" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
-            <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-            <h3 style="font-size: 16px; margin-bottom: 10px;">Analytics</h3>
-            <p style="color: #666; font-size: 13px;">System analytics and reports</p>
-        </a>
-        
-        <a href="{% url 'admin_settings' %}" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
-            <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
-                <i class="fas fa-cog"></i>
-            </div>
-            <h3 style="font-size: 16px; margin-bottom: 10px;">System Settings</h3>
-            <p style="color: #666; font-size: 13px;">Configure system parameters</p>
-        </a>
-        
-        <a href="#" class="card" style="text-align: center; padding: 30px; text-decoration: none; color: inherit;">
-            <div style="width: 60px; height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 20px;">
-                <i class="fas fa-file-invoice"></i>
-            </div>
-            <h3 style="font-size: 16px; margin-bottom: 10px;">Reports</h3>
-            <p style="color: #666; font-size: 13px;">Generate system reports</p>
-        </a>
     </div>
 </div>
 {% endblock %}

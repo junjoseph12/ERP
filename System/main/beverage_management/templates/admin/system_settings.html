@@ -10,6 +10,9 @@
         <p style="color: #666; margin-top: 10px;">Configure system parameters and preferences</p>
     </div>
     <div style="display: flex; gap: 15px;">
+        <a href="{% url 'admin_dashboard' %}" class="btn" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> BACK TO DASHBOARD
+        </a>
         <button class="btn" style="padding: 12px 24px; font-size: 13px;" onclick="document.getElementById('settings-form').submit()">
             <i class="fas fa-save"></i> SAVE SETTINGS
         </button>
