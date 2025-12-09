@@ -1,0 +1,20 @@
+- Kuwang mga Edits
+	- User Edit
+	- Supplier Edit
+	- Item Edit
+
+- Kuwang Views
+	- Orders View
+	- Receiving History View
+
+
+- User logs
+
+
+- Print PDF
+	- Print Requisition Form every pislit Submit Request
+	- Print Create PO Form every pislit Create PO
+	- Print Generate RM
+
+- Print Reports & Audit Logs
+
