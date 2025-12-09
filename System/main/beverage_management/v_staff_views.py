@@ -1,16 +1,25 @@
+# v_staff_views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.urls import reverse  # <--- THIS WAS MISSING
 from .models import InventoryItem, RequisitionForm, RequisitionItem, InternalDelivery
 
+# PDF Imports
+from django.http import HttpResponse 
+from django.template.loader import get_template 
+from xhtml2pdf import pisa 
+
+# ==========================================
+# 1. STAFF DASHBOARD
+# ==========================================
 @login_required
 def staff_dashboard_view(request):
-    # Stats Calculation
     available_beverages = InventoryItem.objects.count()
     categories = InventoryItem.objects.values('category').distinct().count()
     
-    # Logic: Sales Dept sees ALL history; Others see OWN history
     if request.user.department == 'Sales Department':
         my_requisitions_count = RequisitionForm.objects.count()
         pending_approvals = RequisitionForm.objects.filter(
@@ -39,9 +48,11 @@ def staff_dashboard_view(request):
     }
     return render(request, 'staff/dashboard.html', context)
 
+# ==========================================
+# 2. INVENTORY CATALOG
+# ==========================================
 @login_required
 def staff_inventory_view(request):
-    # RESTRICTION: Sales Department cannot browse inventory
     if request.user.department == 'Sales Department':
         messages.error(request, "Access Denied: Sales Department cannot browse inventory.")
         return redirect('staff_dashboard')
@@ -61,17 +72,18 @@ def staff_inventory_view(request):
     }
     return render(request, 'staff/inventory.html', context)
 
+# ==========================================
+# 3. SUBMIT REQUISITION
+# ==========================================
 @login_required
 def staff_requisition_view(request):
-    # RESTRICTION: Only Requesting Party Department can submit new requests
     if request.user.department != 'Requesting Party Department':
-        messages.error(request, "Access Denied: Only the Requesting Party Department can submit new requests.")
+        messages.error(request, "Access Denied.")
         return redirect('staff_dashboard')
 
     if request.method == 'POST':
         purpose = request.POST.get('purpose')
         notes = request.POST.get('notes')
-        
         item_ids = request.POST.getlist('item_ids')
         quantities = request.POST.getlist('item_quantities')
         
@@ -95,25 +107,29 @@ def staff_requisition_view(request):
         
         for i in range(len(item_ids)):
             item = get_object_or_404(InventoryItem, id=item_ids[i])
-            stock_available = item.quantity >= int(quantities[i])
-            
             RequisitionItem.objects.create(
                 requisition=rf,
                 item=item,
                 quantity_requested=int(quantities[i]),
-                stock_available_at_check=stock_available 
+                stock_available_at_check=True 
             )
         
         rf.save()
-        messages.success(request, f"Requisition {rf_number} submitted to Purchasing for review.")
-        return redirect('staff_my_requisitions')
+        messages.success(request, f"Requisition {rf_number} submitted successfully.")
+        
+        # --- FIXED REDIRECT LOGIC ---
+        # We construct the URL with a parameter so the next page knows to download the file
+        base_url = reverse('staff_my_requisitions')
+        return redirect(f"{base_url}?new_req_id={rf.id}")
 
     items = InventoryItem.objects.all().order_by('name')
     return render(request, 'staff/submit_requisition.html', {'inventory_items': items})
 
+# ==========================================
+# 4. MY REQUISITIONS LIST
+# ==========================================
 @login_required
 def staff_my_requisitions_view(request):
-    # RESTRICTION: Requesting Party cannot view History
     if request.user.department == 'Requesting Party Department':
          messages.error(request, "Access Denied: History is view-only for Sales Department.")
          return redirect('staff_dashboard')
@@ -129,13 +145,51 @@ def staff_my_requisitions_view(request):
         'closed': requisitions.filter(status='closed').count(),
         'rejected': requisitions.filter(status='rejected').count(),
     }
+
+    # CHECK FOR URL PARAMETER TO TRIGGER DOWNLOAD
+    auto_download_req_id = request.GET.get('new_req_id')
     
     context = {
         'requisitions': requisitions,
-        'stats': stats
+        'stats': stats,
+        'auto_download_req_id': auto_download_req_id # Passes ID to template
     }
     return render(request, 'staff/my_requisitions.html', context)
 
+# ==========================================
+# 5. DOWNLOAD PDF
+# ==========================================
+@login_required
+def staff_download_req_pdf_view(request, req_id):
+    req = get_object_or_404(RequisitionForm, id=req_id)
+    
+    # Simple Permission Check
+    if req.requester != request.user and request.user.role not in ['admin', 'warehouse_manager', 'purchasing_officer', 'staff']:
+         messages.error(request, "Access denied.")
+         return redirect('home')
+
+    context = {
+        'req': req,
+        'items': req.items.all(),
+        'generated_at': timezone.now()
+    }
+    
+    template_path = 'staff/req_pdf.html'
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{req.rf_number}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+# ==========================================
+# 6. OTHER VIEWS
+# ==========================================
 @login_required
 def staff_requisition_detail_view(request, req_id):
     if request.user.department == 'Sales Department':
@@ -148,19 +202,11 @@ def staff_requisition_detail_view(request, req_id):
     }
     return render(request, 'staff/requisition_detail.html', context)
 
-# NEW: Action to Mark Items as Delivered (Return as Sales)
 @login_required
 def staff_confirm_delivery_view(request, req_id):
     req = get_object_or_404(RequisitionForm, id=req_id)
-    
-    # Logic: Mark as Closed (Delivered)
-    # This transitions the request to a "Completed Sale" state in the system
-    
-    # 1. Update Requisition Status
     req.status = 'closed'
     req.save()
-    
-    # 2. Log Internal Delivery (Acknowledgment)
     InternalDelivery.objects.update_or_create(
         requisition=req,
         defaults={
@@ -169,6 +215,5 @@ def staff_confirm_delivery_view(request, req_id):
             'received_by_staff_name': request.user.get_full_name()
         }
     )
-    
     messages.success(request, f"Requisition {req.rf_number} marked as DELIVERED. Recorded as Sales.")
     return redirect('staff_requisition_detail', req_id=req.id)

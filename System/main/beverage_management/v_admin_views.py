@@ -241,6 +241,15 @@ def admin_edit_user_view(request, user_id):
         user_to_edit.department = request.POST.get('department', user_to_edit.department)
         user_to_edit.role = request.POST.get('role', user_to_edit.role)
         
+        # --- ADDED: Update Status ---
+        user_to_edit.status = request.POST.get('status', user_to_edit.status)
+        
+        # Logic: If status is approved, ensure is_active is True, else False (unless pending)
+        if user_to_edit.status == 'approved':
+            user_to_edit.is_active = True
+        elif user_to_edit.status in ['rejected', 'suspended']:
+            user_to_edit.is_active = False
+            
         user_to_edit.save()
         
         messages.success(request, f'Profile for {user_to_edit.email} has been updated.')

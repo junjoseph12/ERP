@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Sum
+from django.http import HttpResponse  
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 from .models import PurchaseOrder, Supplier, RequisitionForm, PurchaseOrderItem, InventoryItem, StockAdjustment
 from .forms import SupplierForm, PurchaseOrderForm
@@ -99,7 +102,15 @@ def purchasing_approve_to_warehouse_view(request, req_id):
 @login_required
 def purchasing_orders_view(request):
     orders = PurchaseOrder.objects.all().order_by('-date_created')
-    return render(request, 'purchasing_officer/orders.html', {'orders': orders})
+    
+    # --- ADDED: Check for auto-download flag ---
+    auto_download_po_id = request.session.pop('pdf_download_po_id', None)
+    
+    context = {
+        'orders': orders,
+        'auto_download_po_id': auto_download_po_id # Pass to template
+    }
+    return render(request, 'purchasing_officer/orders.html', context)
 
 @login_required
 def purchasing_create_po_view(request):
@@ -119,7 +130,6 @@ def purchasing_create_po_view(request):
             po.created_by = request.user
             po.po_number = f"PO-{timezone.now().strftime('%Y%m%d')}-{PurchaseOrder.objects.count() + 1:03d}"
             
-            # UPDATED: Default to 'ordered'
             po.status = 'ordered' 
             po.save()
             
@@ -141,7 +151,10 @@ def purchasing_create_po_view(request):
                     po.requisition.status = 'in_process'
                     po.requisition.save()
 
-                messages.success(request, f'Purchase Order {po.po_number} created successfully with status ORDERED.')
+                messages.success(request, f'Purchase Order {po.po_number} created successfully.')
+                
+                # --- ADDED: Set session flag for auto-download ---
+                request.session['pdf_download_po_id'] = po.id
                 return redirect('purchasing_orders')
             else:
                 messages.error(request, 'Please add items to the PO.')
@@ -156,6 +169,36 @@ def purchasing_create_po_view(request):
         'linked_req': linked_req 
     })
 
+@login_required
+def purchasing_download_po_pdf_view(request, po_id):
+    if request.user.role not in ['purchasing_officer', 'admin'] and not request.user.is_superuser:
+        messages.error(request, "Access denied.")
+        return redirect('home')
+
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    
+    # Calculate Grand Total
+    grand_total = sum(item.total_price for item in po.items.all())
+
+    context = {
+        'po': po,
+        'items': po.items.all(),
+        'grand_total': grand_total,
+        'generated_at': timezone.now()
+    }
+    
+    template_path = 'purchasing_officer/po_pdf.html'
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{po.po_number}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
 # ==========================================
 # 4. UPDATE PO STATUS (NEW)
 # ==========================================
@@ -194,3 +237,22 @@ def purchasing_add_supplier_view(request):
         form = SupplierForm()
     
     return render(request, 'purchasing_officer/add_supplier.html', {'form': form})
+
+@login_required
+def purchasing_edit_supplier_view(request, supplier_id):
+    if request.user.role not in ['purchasing_officer', 'admin'] and not request.user.is_superuser:
+        messages.error(request, "Access denied. You do not have permission to edit suppliers.")
+        return redirect('home')
+        
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    
+    if request.method == 'POST':
+        form = SupplierForm(request.POST, instance=supplier)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Supplier "{supplier.name}" updated successfully.')
+            return redirect('purchasing_suppliers')
+    else:
+        form = SupplierForm(instance=supplier)
+    
+    return render(request, 'purchasing_officer/edit_supplier.html', {'form': form, 'supplier': supplier})

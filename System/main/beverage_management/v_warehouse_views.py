@@ -5,6 +5,9 @@ from django.core.paginator import Paginator
 from django.db.models import F, Sum, Count
 from django.db import transaction
 from django.utils import timezone
+from django.http import HttpResponse
+from django.template.loader import get_template # Added
+from xhtml2pdf import pisa # Added (Make sure to pip install xhtml2pdf)
 
 from .models import InventoryItem, StockAdjustment, ReceivingReport, InternalDelivery, PurchaseOrder
 from .forms import InventoryItemForm, StockUpdateForm, ReceivingForm
@@ -198,24 +201,29 @@ def warehouse_receiving_view(request):
     if request.user.role != 'warehouse_manager':
         return redirect('home')
     
-    # UPDATED: Only show 'in_transit' POs
     incoming_pos = PurchaseOrder.objects.filter(status='in_transit').order_by('date_created')
-    
     received_history = ReceivingReport.objects.all().order_by('-date_received')[:10]
+    
+    # --- ADDED: Check if there is a pending PDF to download ---
+    auto_download_rm_id = request.session.pop('pdf_download_rm_id', None)
     
     context = {
         'incoming_pos': incoming_pos,
-        'received_history': received_history
+        'received_history': received_history,
+        'auto_download_rm_id': auto_download_rm_id # Pass this to the template
     }
     return render(request, 'warehouse_manager/receiving.html', context)
 
 @login_required
 def warehouse_process_receiving_view(request, po_id):
+    # 1. Permission Check
     if request.user.role != 'warehouse_manager':
         return redirect('home')
         
+    # 2. Get the Purchase Order
     po = get_object_or_404(PurchaseOrder, id=po_id)
     
+    # 3. Handle Form Submission (POST)
     if request.method == 'POST':
         form = ReceivingForm(request.POST)
         if form.is_valid():
@@ -230,6 +238,7 @@ def warehouse_process_receiving_view(request, po_id):
                     if report.quality_check_passed:
                         report.status = 'accepted'
                         
+                        # Update Stock
                         for po_item in po.items.all():
                             inventory_item = po_item.item
                             inventory_item.quantity += po_item.quantity
@@ -245,7 +254,6 @@ def warehouse_process_receiving_view(request, po_id):
                                 notes=f"Received via DR: {report.delivery_receipt_no}"
                             )
                         
-                        # UPDATED: PO status becomes 'completed'
                         po.status = 'completed'
                         po.save()
                         messages.success(request, f"Receiving Memo {report.rm_number} generated. Stock updated.")
@@ -254,13 +262,19 @@ def warehouse_process_receiving_view(request, po_id):
                         messages.warning(request, "Delivery rejected due to quality check failure.")
                     
                     report.save()
+                    
+                    # --- SESSION FLAG FOR PDF DOWNLOAD ---
+                    request.session['pdf_download_rm_id'] = report.id
                     return redirect('warehouse_receiving')
                     
             except Exception as e:
                 messages.error(request, f"Error processing receiving: {str(e)}")
+    
+    # 4. Handle Page Load (GET) - THIS PART WAS LIKELY MISSING
     else:
         form = ReceivingForm()
         
+    # 5. Render the Template - THIS PART WAS LIKELY MISSING
     context = {
         'po': po,
         'form': form,
@@ -273,3 +287,61 @@ def warehouse_new_receiving_view(request):
     # This might be deprecated if you are using the specific process_receiving flow
     # But kept to avoid errors if linked elsewhere
     return render(request, 'warehouse_manager/new_receiving.html')
+
+@login_required
+def warehouse_download_rm_pdf_view(request, rm_id):
+    if request.user.role not in ['warehouse_manager', 'admin'] and not request.user.is_superuser:
+        messages.error(request, "Access denied.")
+        return redirect('home')
+
+    rm = get_object_or_404(ReceivingReport, id=rm_id)
+    
+    # Context data for the PDF
+    context = {
+        'rm': rm,
+        'po': rm.purchase_order,
+        'items': rm.purchase_order.items.all(),
+        'generated_at': timezone.now()
+    }
+    
+    # Render template
+    template_path = 'warehouse_manager/rm_pdf.html'
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    # Create PDF
+    response = HttpResponse(content_type='application/pdf')
+    # 'attachment' forces download. Remove 'attachment;' to view in browser.
+    response['Content-Disposition'] = f'attachment; filename="{rm.rm_number}_receipt.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+@login_required
+def warehouse_edit_item_details_view(request, item_id):
+    if request.user.role not in ['warehouse_manager', 'admin'] and not request.user.is_superuser:
+        messages.error(request, "Access denied. You do not have permission to edit items.")
+        return redirect('home')
+    
+    item = get_object_or_404(InventoryItem, id=item_id)
+    
+    if request.method == 'POST':
+        # We process the form manually or exclude quantity to prevent stock manipulation here
+        item.name = request.POST.get('name')
+        item.brand = request.POST.get('brand')
+        item.category = request.POST.get('category')
+        item.sku = request.POST.get('sku')
+        item.location = request.POST.get('location')
+        item.description = request.POST.get('description')
+        item.unit = request.POST.get('unit')
+        item.reorder_point = request.POST.get('reorder_point')
+        
+        # Save changes
+        item.save()
+        messages.success(request, f'Details for "{item.name}" updated. Stock was not changed.')
+        return redirect('warehouse_inventory')
+        
+    return render(request, 'warehouse_manager/edit_item_details.html', {'item': item})

@@ -60,6 +60,11 @@
                             </span>
                             {% endif %}
                         </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                             <a href="{% url 'purchasing_edit_supplier' supplier.id %}" class="btn" style="padding: 6px 14px; font-size: 11px; background: transparent; border: 1px solid #000; color: #000; text-decoration: none;">
+                                <i class="fas fa-edit" style="margin-right: 4px;"></i> EDIT
+                            </a>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>

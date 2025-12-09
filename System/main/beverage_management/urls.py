@@ -16,7 +16,7 @@ urlpatterns = [
     # System Admin URLs
     path('system-admin/dashboard/', admin_views.admin_dashboard_view, name='admin_dashboard'),
     path('system-admin/users/', admin_views.admin_user_management_view, name='admin_users'),
-    path('admin/user/<int:user_id>/edit/', admin_views.admin_edit_user_view, name='admin_edit_user'),
+    path('system-admin/user/<int:user_id>/edit/', admin_views.admin_edit_user_view, name='admin_edit_user'),
     path('system-admin/settings/', admin_views.admin_system_settings_view, name='admin_settings'),
     
     # User Management URLs
@@ -34,7 +34,9 @@ urlpatterns = [
     path('warehouse/inventory/update/<int:item_id>/', warehouse_views.warehouse_update_stock_view, name='warehouse_update_stock'),
     path('warehouse/receiving/new/', warehouse_views.warehouse_new_receiving_view, name='warehouse_new_receiving'),
     path('warehouse/receiving/process/<int:po_id>/', warehouse_views.warehouse_process_receiving_view, name='warehouse_process_receiving'),
-    
+    path('warehouse/inventory/edit-details/<int:item_id>/', warehouse_views.warehouse_edit_item_details_view, name='warehouse_edit_item_details'), 
+    path('warehouse/receiving/pdf/<int:rm_id>/', warehouse_views.warehouse_download_rm_pdf_view, name='warehouse_download_rm_pdf'),
+
     # Purchasing Officer URLs
     path('purchasing/dashboard/', purchasing_views.purchasing_dashboard_view, name='purchasing_dashboard'),
     path('purchasing/requisitions/', purchasing_views.purchasing_requisitions_view, name='purchasing_requisitions'),
@@ -47,7 +49,9 @@ urlpatterns = [
     path('purchasing/orders/create/', purchasing_views.purchasing_create_po_view, name='purchasing_create_po'),
     path('purchasing/requisitions/forward/<int:req_id>/', purchasing_views.purchasing_approve_to_warehouse_view, name='purchasing_approve_to_warehouse'),
     path('purchasing/orders/status/<int:po_id>/<str:new_status>/', purchasing_views.purchasing_update_po_status_view, name='purchasing_update_po_status'),
-    
+    path('purchasing/suppliers/edit/<int:supplier_id>/', purchasing_views.purchasing_edit_supplier_view, name='purchasing_edit_supplier'), 
+    path('purchasing/orders/pdf/<int:po_id>/', purchasing_views.purchasing_download_po_pdf_view, name='purchasing_download_po_pdf'),
+
     # Staff URLs
     path('staff/dashboard/', staff_views.staff_dashboard_view, name='staff_dashboard'),
     path('staff/inventory/', staff_views.staff_inventory_view, name='staff_inventory'),
@@ -55,4 +59,5 @@ urlpatterns = [
     path('staff/my-requisitions/', staff_views.staff_my_requisitions_view, name='staff_my_requisitions'),
     path('staff/my-requisitions/<int:req_id>/', staff_views.staff_requisition_detail_view, name='staff_requisition_detail'),
     path('staff/requisition/deliver/<int:req_id>/', staff_views.staff_confirm_delivery_view, name='staff_confirm_delivery'),
+    path('staff/my-requisitions/pdf/<int:req_id>/', staff_views.staff_download_req_pdf_view, name='staff_download_req_pdf'),
 ]

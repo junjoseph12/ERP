@@ -142,10 +142,16 @@
                             {% endif %}
                         </td>
                         <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
-                            <a href="{% url 'warehouse_update_stock' item.id %}" 
-                               class="btn" style="padding: 6px 14px; font-size: 11px; background: #0984e3; border: none; color: white; text-decoration: none;">
-                                <i class="fas fa-edit" style="margin-right: 4px; font-size: 10px;"></i> UPDATE
-                            </a>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{% url 'warehouse_edit_item_details' item.id %}" 
+                                   class="btn" style="padding: 6px 10px; font-size: 10px; background: transparent; border: 1px solid #666; color: #333; text-decoration: none;" title="Edit Details">
+                                    <i class="fas fa-pencil-alt"></i> EDIT
+                                </a>
+                                <a href="{% url 'warehouse_update_stock' item.id %}" 
+                                   class="btn" style="padding: 6px 10px; font-size: 10px; background: #0984e3; border: none; color: white; text-decoration: none;" title="Adjust Stock">
+                                    <i class="fas fa-boxes"></i> UPDATE
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

@@ -138,4 +138,16 @@
         </div>
     </div>
 </div>
+
+{% if auto_download_req_id %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("Downloading PDF for ID: {{ auto_download_req_id }}");
+        setTimeout(function() {
+            window.location.href = "{% url 'staff_download_req_pdf' auto_download_req_id %}";
+        }, 500); // 0.5s delay to allow page load
+    });
+</script>
+{% endif %}
+
 {% endblock %}

@@ -89,9 +89,10 @@
                     <thead>
                         <tr style="border-bottom: 1px solid #eee;">
                             <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">REQ ID</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">STATUS</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">ITEMS</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 30%;">DATE</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">STATUS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">ITEMS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">DATE</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 15%;">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,10 +114,15 @@
                             </td>
                             <td style="padding: 15px 12px; color: #666;">{{ req.items.count }} items</td>
                             <td style="padding: 15px 12px; color: #666;">{{ req.date_created|date:"M d, Y" }}</td>
+                            <td style="padding: 15px 12px;">
+                                <a href="{% url 'staff_download_req_pdf' req.id %}" class="btn" style="padding: 5px 10px; font-size: 10px; background: #000; color: white; text-decoration: none; border-radius: 4px;">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
+                            <td colspan="5" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -173,9 +179,10 @@
                     <thead>
                         <tr style="border-bottom: 1px solid #eee;">
                             <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">REQ ID</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">STATUS</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">ITEMS</th>
-                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 30%;">DATE</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">STATUS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 20%;">ITEMS</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 25%;">DATE</th>
+                            <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; font-size: 11px; width: 15%;">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -197,10 +204,15 @@
                             </td>
                             <td style="padding: 15px 12px; color: #666;">{{ req.items.count }} items</td>
                             <td style="padding: 15px 12px; color: #666;">{{ req.date_created|date:"M d, Y" }}</td>
+                            <td style="padding: 15px 12px;">
+                                <a href="{% url 'staff_download_req_pdf' req.id %}" class="btn" style="padding: 5px 10px; font-size: 10px; background: #000; color: white; text-decoration: none; border-radius: 4px;">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
+                            <td colspan="5" style="text-align: center; color: #999; padding: 40px;">No recent history.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -212,29 +224,6 @@
 </div>
 
 {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
-<div class="card" style="border: 1px solid #eee; margin-bottom: 40px;">
-    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
-        <i class="fas fa-fire" style="margin-right: 10px;"></i> POPULAR BEVERAGES
-    </div>
-    <div class="card-body" style="padding: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            {% for beverage in popular_beverages %}
-            <div style="border: 1px solid #eee; padding: 20px; text-align: center; background: #fff;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #00b894, #55efc4); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px; border: none;">
-                    <i class="fas fa-wine-bottle"></i>
-                </div>
-                <h4 style="font-size: 16px; margin-bottom: 8px; font-weight: 600;">{{ beverage.name }}</h4>
-                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">{{ beverage.get_category_display }}</div>
-                <div style="font-weight: 600; font-size: 18px; color: #000;">{{ beverage.quantity }}</div>
-                <div style="font-size: 12px; color: #666;">units in stock</div>
-                <a href="{% url 'staff_requisition' %}" style="display: block; margin-top: 15px; padding: 8px 16px; background: transparent; border: 1px solid #000; color: #000; font-size: 12px; cursor: pointer; width: 100%; text-decoration: none; text-align: center;">
-                    <i class="fas fa-cart-plus"></i> REQUEST
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
 {% endif %}
 
 <div class="card" style="border: 1px solid #eee;">
@@ -243,7 +232,6 @@
     </div>
     <div class="card-body" style="padding: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            
             {% if user.department == 'Requesting Party Department' or user.department == 'Master Admin' %}
             <a href="{% url 'staff_inventory' %}" style="text-align: center; padding: 25px; text-decoration: none; color: inherit; border: 1px solid #eee; background: #fff;">
                 <div style="width: 50px; height: 50px; background: #00b894; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 15px; border: none;">
