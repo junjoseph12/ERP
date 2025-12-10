@@ -1,243 +1,113 @@
 {% extends 'base.html' %}
 
-{% block title %}Browse Inventory - Beverage ERP{% endblock %}
+{% block title %}Browse Inventory - Staff{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>BROWSE INVENTORY</h1>
-        <p style="color: #666; margin-top: 10px;">Search and filter available beverages. Check stock levels before requesting.</p>
+        <p style="color: #666; margin-top: 10px;">Check stock availability before submitting requests.</p>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'staff_dashboard' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
+    <div>
+        <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000;">
             <i class="fas fa-arrow-left"></i> BACK TO DASHBOARD
         </a>
-        <button class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-download"></i> EXPORT
-        </button>
     </div>
 </div>
 
-<!-- Search and Filter Section -->
-<div class="card" style="margin-bottom: 30px;">
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <!-- Search Bar -->
-            <div>
-                <div class="form-label">SEARCH BEVERAGES</div>
-                <div style="position: relative;">
-                    <input type="text" class="form-control" placeholder="Search by name, SKU, or brand..." style="padding-left: 45px;">
-                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+<div class="card" style="margin-bottom: 30px; border: 1px solid #eee;">
+    <div class="card-body" style="padding: 20px;">
+        <form method="get">
+            <div style="display: grid; grid-template-columns: 3fr 2fr 1fr; gap: 15px; align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Search Items</label>
+                    <div style="position: relative;">
+                        <input type="text" name="search" class="form-control" placeholder="Search by name, SKU..." value="{{ request.GET.search }}" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                        <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666;"></i>
+                    </div>
                 </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Category</label>
+                    <select name="category" class="form-control" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                        <option value="">All Categories</option>
+                        <option value="soft_drinks">Soft Drinks</option>
+                        <option value="energy_drinks">Energy Drinks</option>
+                        <option value="juices">Juices</option>
+                        <option value="water">Water</option>
+                        <option value="alcoholic">Alcoholic Beverages</option>
+                        <option value="coffee_tea">Coffee & Tea</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" style="height: 50px; border: 1px solid #000; background: #000; color: white; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-filter"></i> FILTER
+                </button>
             </div>
-            
-            <!-- Category Filter -->
-            <div>
-                <div class="form-label">CATEGORY</div>
-                <select class="form-control">
-                    <option value="">All Categories</option>
-                    <option value="soft_drinks">Soft Drinks</option>
-                    <option value="energy_drinks">Energy Drinks</option>
-                    <option value="juices">Juices</option>
-                    <option value="water">Water</option>
-                    <option value="coffee_tea">Coffee & Tea</option>
-                    <option value="sports_drinks">Sports Drinks</option>
-                    <option value="dairy">Dairy Beverages</option>
-                </select>
-            </div>
-            
-            <!-- Brand Filter -->
-            <div>
-                <div class="form-label">BRAND</div>
-                <select class="form-control">
-                    <option value="">All Brands</option>
-                    <option value="coca_cola">Coca-Cola</option>
-                    <option value="pepsi">Pepsi</option>
-                    <option value="red_bull">Red Bull</option>
-                    <option value="nestle">Nestle</option>
-                    <option value="dole">Dole</option>
-                    <option value="evian">Evian</option>
-                </select>
-            </div>
-            
-            <!-- Stock Status -->
-            <div>
-                <div class="form-label">STOCK STATUS</div>
-                <select class="form-control">
-                    <option value="">All Status</option>
-                    <option value="in_stock">In Stock</option>
-                    <option value="low_stock">Low Stock</option>
-                    <option value="out_of_stock">Out of Stock</option>
-                </select>
-            </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button class="btn" style="padding: 12px 24px; font-size: 13px; flex: 1;">
-                <i class="fas fa-filter"></i> APPLY FILTERS
-            </button>
-            <button class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-                <i class="fas fa-redo"></i> RESET
-            </button>
-        </div>
+        </form>
     </div>
 </div>
 
-<!-- Inventory Summary -->
-<div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
-            <i class="fas fa-boxes"></i>
-        </div>
-        <div class="stat-value">156</div>
-        <div class="stat-label">Total Items</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-value">132</div>
-        <div class="stat-label">In Stock</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <div class="stat-value">18</div>
-        <div class="stat-label">Low Stock</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
-            <i class="fas fa-times-circle"></i>
-        </div>
-        <div class="stat-value">6</div>
-        <div class="stat-label">Out of Stock</div>
-    </div>
-</div>
-
-<!-- Inventory Table -->
-<div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <i class="fas fa-list" style="margin-right: 10px;"></i> AVAILABLE BEVERAGES
-        </div>
-        <div style="font-size: 13px; color: #666;">
-            Showing 1-10 of 156 items
-        </div>
+<div class="card" style="border: 1px solid #eee;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+        <i class="fas fa-boxes" style="margin-right: 10px;"></i> ITEM CATALOG
     </div>
     <div class="card-body" style="padding: 0;">
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
                 <thead>
-                    <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">PRODUCT</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">CATEGORY</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">BRAND</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">SKU</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">STOCK</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">LOCATION</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; color: #000;">ACTION</th>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 30%;">PRODUCT</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">CATEGORY</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">STOCK LEVEL</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">STATUS</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Sample Data Rows -->
-                    {% for i in "1234567890" %}
-                    <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa';" onmouseout="this.style.background='white';">
-                        <td style="padding: 15px;">
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #00b894, #55efc4); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                                    <i class="fas fa-wine-bottle"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml Can</div>
-                                    <div style="font-size: 12px; color: #666;">Pack of 24</div>
-                                </div>
-                            </div>
+                    {% for item in inventory_items %}
+                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <div style="font-weight: 600; font-size: 14px; color: #000; margin-bottom: 4px;">{{ item.name }}</div>
+                            <div style="font-size: 12px; color: #888; font-family: monospace;">SKU: {{ item.sku }}</div>
                         </td>
-                        <td style="padding: 15px;">
-                            <span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; font-size: 12px; font-weight: 600;">Soft Drinks</span>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <span style="padding: 5px 12px; background: #f8f9fa; border: 1px solid #e0e0e0; font-size: 11px; font-weight: 600; color: #555; display: inline-block;">
+                                {{ item.get_category_display }}
+                            </span>
                         </td>
-                        <td style="padding: 15px; font-weight: 600; font-size: 14px;">Coca-Cola</td>
-                        <td style="padding: 15px; font-family: monospace; color: #666;">SKU-COKE-330-24</td>
-                        <td style="padding: 15px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="font-weight: 800; font-size: 16px; color: 
-                                    {% if forloop.counter|divisibleby:3 %}#ffc107
-                                    {% elif forloop.counter|divisibleby:5 %}#ff6b6b
-                                    {% else %}#00b894
-                                    {% endif %}">
-                                    {% if forloop.counter|divisibleby:3 %}12
-                                    {% elif forloop.counter|divisibleby:5 %}0
-                                    {% else %}45
-                                    {% endif %}
-                                </div>
-                                <div style="width: 100px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
-                                    <div style="width: 
-                                        {% if forloop.counter|divisibleby:3 %}30%
-                                        {% elif forloop.counter|divisibleby:5 %}0%
-                                        {% else %}75%
-                                        {% endif %}; height: 100%; background: 
-                                        {% if forloop.counter|divisibleby:3 %}#ffc107
-                                        {% elif forloop.counter|divisibleby:5 %}#ff6b6b
-                                        {% else %}#00b894
-                                        {% endif %}"></div>
-                                </div>
-                            </div>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <div style="font-weight: 700; font-size: 16px; color: #000;">{{ item.quantity }}</div>
+                            <div style="font-size: 11px; color: #888;">{{ item.get_unit_display }}</div>
                         </td>
-                        <td style="padding: 15px; font-size: 13px; color: #666;">
-                            <i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> Aisle 3, Shelf B
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            {% if item.stock_status == 'in_stock' %}
+                                <span style="padding: 5px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">IN STOCK</span>
+                            {% elif item.stock_status == 'low_stock' %}
+                                <span style="padding: 5px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">LOW STOCK</span>
+                            {% else %}
+                                <span style="padding: 5px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">OUT OF STOCK</span>
+                            {% endif %}
                         </td>
-                        <td style="padding: 15px;">
-                            <button class="btn" style="padding: 8px 16px; font-size: 12px; white-space: nowrap;">
-                                <i class="fas fa-cart-plus"></i> REQUEST
-                            </button>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            <a href="{% url 'staff_requisition' %}" class="btn" style="padding: 6px 14px; font-size: 11px; background: #0984e3; color: white; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-plus" style="font-size: 10px;"></i> REQUEST
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 60px; color: #888;">
+                            <i class="fas fa-search" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; margin-bottom: 8px;">No items found matching your criteria.</div>
+                            <div style="font-size: 12px; color: #aaa;">Try adjusting your search or filter</div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
-    
-    <!-- Pagination -->
-    <div style="padding: 20px 30px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-size: 13px; color: #666;">
-            Page 1 of 16
-        </div>
-        <div style="display: flex; gap: 5px;">
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button style="padding: 8px 12px; background: #000; color: white; border: none; cursor: pointer;">1</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">2</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">3</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">...</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">16</button>
-            <button style="padding: 8px 12px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer;">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Legend -->
-<div style="display: flex; gap: 30px; margin-top: 30px; font-size: 13px;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 12px; height: 12px; background: #00b894; border-radius: 2px;"></div>
-        <span>In Stock (≥ 20 units)</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 12px; height: 12px; background: #ffc107; border-radius: 2px;"></div>
-        <span>Low Stock (1-19 units)</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 12px; height: 12px; background: #ff6b6b; border-radius: 2px;"></div>
-        <span>Out of Stock (0 units)</span>
     </div>
 </div>
 {% endblock %}

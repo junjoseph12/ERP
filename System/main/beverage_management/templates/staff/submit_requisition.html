@@ -1,390 +1,188 @@
 {% extends 'base.html' %}
 
-{% block title %}Submit Requisition - Beverage ERP{% endblock %}
+{% block title %}New Request - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>SUBMIT REQUISITION</h1>
-        <p style="color: #666; margin-top: 10px;">Request beverages for your department. Your request will go through approval workflow.</p>
+        <p style="color: #666; margin-top: 10px;">Request beverages for your department.</p>
     </div>
     <div style="display: flex; gap: 15px;">
-        <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-arrow-left"></i> CANCEL
-        </a>
-        <a href="{% url 'staff_inventory' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-search"></i> BROWSE INVENTORY
+        <a href="{% url 'staff_dashboard' %}" class="btn" style="padding: 12px 24px; font-size: 13px; background: transparent; border: 1px solid #000; color: #000; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> CANCEL
         </a>
     </div>
 </div>
 
-<!-- Two Column Layout -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
-    <!-- Left Column: Requisition Form -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> REQUISITION DETAILS
-        </div>
-        <div class="card-body">
-            <!-- Basic Information -->
-            <div style="margin-bottom: 30px;">
-                <h3 style="font-size: 16px; margin-bottom: 20px; color: #000; border-bottom: 1px solid #eee; padding-bottom: 10px;">REQUEST INFORMATION</h3>
-                
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                    <div class="form-group">
-                        <div class="form-label">REQUESTER</div>
-                        <input type="text" class="form-control" value="{{ user.get_full_name|default:user.username }}" readonly>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="form-label">DEPARTMENT</div>
-                        <input type="text" class="form-control" value="{{ user.department|default:'Sales Department' }}" readonly>
-                    </div>
+<form method="POST" action="{% url 'staff_requisition' %}" id="requisitionForm">
+    {% csrf_token %}
+    
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        <div>
+            <div class="card" style="border: 1px solid #eee; margin-bottom: 30px;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> REQUISITION DETAILS
                 </div>
-                
-                <div class="form-group">
-                    <div class="form-label">REQUISITION PURPOSE</div>
-                    <select class="form-control">
-                        <option value="">Select Purpose</option>
-                        <option value="daily_use">Daily Office Consumption</option>
-                        <option value="meeting_event">Meeting/Event Supplies</option>
-                        <option value="client_visit">Client Visit Hospitality</option>
-                        <option value="team_outing">Team Outing/Activity</option>
-                        <option value="other">Other (Specify below)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">SPECIAL INSTRUCTIONS / NOTES</div>
-                    <textarea class="form-control" rows="3" placeholder="Any special delivery instructions or notes..."></textarea>
+                <div class="card-body" style="padding: 20px;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Purpose of Request *</label>
+                        <select name="purpose" class="form-control" required style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                            <option value="meeting_event">Meeting / Client Event</option>
+                            <option value="restock">Department Pantry Restock</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Additional Notes</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="e.g., Deliver to Conference Room B..." style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Date Needed *</label>
+                        <input type="date" 
+                            name="date_needed" 
+                            class="form-control" 
+                            required 
+                            min="{% now 'Y-m-d' %}" 
+                            style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                        <small style="color: #666; font-size: 11px;">(Past dates are disabled)</small>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Item Selection -->
-            <div style="margin-bottom: 30px;">
-                <h3 style="font-size: 16px; margin-bottom: 20px; color: #000; border-bottom: 1px solid #eee; padding-bottom: 10px;">SELECT ITEMS</h3>
-                
-                <!-- Search Bar -->
-                <div class="form-group">
-                    <div class="form-label">SEARCH AND ADD ITEMS</div>
-                    <div style="position: relative;">
-                        <input type="text" class="form-control" placeholder="Search beverages by name, SKU, or category..." style="padding-left: 45px;">
-                        <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666;"></i>
-                    </div>
+
+            <div class="card" style="border: 1px solid #eee;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-cart-plus" style="margin-right: 10px;"></i> SELECT ITEMS
                 </div>
-                
-                <!-- Quick Add Buttons -->
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 10px;">QUICK ADD POPULAR ITEMS</div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-plus"></i> Coca-Cola 330ml
-                        </button>
-                        <button style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-plus"></i> Red Bull 250ml
-                        </button>
-                        <button style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-plus"></i> Mineral Water 500ml
-                        </button>
-                        <button style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-plus"></i> Orange Juice 1L
-                        </button>
-                        <button style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #eee; color: #666; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-plus"></i> Coffee Packets
-                        </button>
+                <div class="card-body" style="padding: 20px;">
+                    <div style="background: #f8f9fa; border: 1px solid #eee; padding: 20px; margin-bottom: 20px;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 10px; display: block;">Add Item to List</label>
+                        <div style="display: grid; grid-template-columns: 1fr 100px auto; gap: 10px;">
+                            <select id="itemSelect" class="form-control" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                                <option value="">-- Choose Beverage --</option>
+                                {% for item in inventory_items %}
+                                <option value="{{ item.id }}" 
+                                        data-name="{{ item.name }}" 
+                                        data-sku="{{ item.sku }}"
+                                        data-stock="{{ item.quantity }}">
+                                    {{ item.name }} (Stock: {{ item.quantity }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <input type="number" id="qtyInput" class="form-control" placeholder="Qty" min="1" value="1" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; text-align: center; width: 100%;">
+                            <button type="button" class="btn" onclick="addItem()" style="padding: 0 20px; font-size: 13px; background: #00b894; border: 1px solid #00b894; color: white;">
+                                <i class="fas fa-plus"></i> ADD
+                            </button>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Selected Items Table -->
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div style="font-size: 14px; font-weight: 600; color: #000;">SELECTED ITEMS (3)</div>
-                        <button style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; cursor: pointer; font-size: 12px;">
-                            <i class="fas fa-trash"></i> CLEAR ALL
-                        </button>
-                    </div>
-                    
+
                     <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse;">
+                        <table class="table" id="selectedItemsTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
                             <thead>
-                                <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">ITEM</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">QUANTITY</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">STOCK</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">UNIT PRICE</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">TOTAL</th>
-                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #000;">ACTION</th>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 40%;">Item Name</th>
+                                    <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 25%;">SKU</th>
+                                    <th style="padding: 15px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">Requested Qty</th>
+                                    <th style="padding: 15px 12px; text-align: right; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Sample Items -->
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 12px;">
-                                        <div style="font-weight: 600; font-size: 14px;">Coca-Cola 330ml Can</div>
-                                        <div style="font-size: 12px; color: #666;">Pack of 24</div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">-</button>
-                                            <input type="number" value="2" min="1" max="100" style="width: 60px; padding: 8px; border: 1px solid #eee; text-align: center;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">+</button>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <span style="background: #d1ecf1; color: #0c5460; padding: 4px 10px; font-size: 12px; font-weight: 600;">45 units</span>
-                                    </td>
-                                    <td style="padding: 12px; font-weight: 600;">$24.99</td>
-                                    <td style="padding: 12px; font-weight: 600;">$49.98</td>
-                                    <td style="padding: 12px;">
-                                        <button style="color: #ff6b6b; background: none; border: none; cursor: pointer;">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 12px;">
-                                        <div style="font-weight: 600; font-size: 14px;">Red Bull 250ml</div>
-                                        <div style="font-size: 12px; color: #666;">Energy Drink</div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">-</button>
-                                            <input type="number" value="3" min="1" max="100" style="width: 60px; padding: 8px; border: 1px solid #eee; text-align: center;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">+</button>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <span style="background: #d1ecf1; color: #0c5460; padding: 4px 10px; font-size: 12px; font-weight: 600;">85 units</span>
-                                    </td>
-                                    <td style="padding: 12px; font-weight: 600;">$2.99</td>
-                                    <td style="padding: 12px; font-weight: 600;">$8.97</td>
-                                    <td style="padding: 12px;">
-                                        <button style="color: #ff6b6b; background: none; border: none; cursor: pointer;">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td style="padding: 12px;">
-                                        <div style="font-weight: 600; font-size: 14px;">Mineral Water 500ml</div>
-                                        <div style="font-size: 12px; color: #666;">Bottled Water</div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">-</button>
-                                            <input type="number" value="1" min="1" max="100" style="width: 60px; padding: 8px; border: 1px solid #eee; text-align: center;">
-                                            <button style="width: 30px; height: 30px; background: #eee; border: none; cursor: pointer;">+</button>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <span style="background: #f8d7da; color: #721c24; padding: 4px 10px; font-size: 12px; font-weight: 600;">0 units</span>
-                                    </td>
-                                    <td style="padding: 12px; font-weight: 600;">$0.99</td>
-                                    <td style="padding: 12px; font-weight: 600;">$0.99</td>
-                                    <td style="padding: 12px;">
-                                        <button style="color: #ff6b6b; background: none; border: none; cursor: pointer;">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                <!-- Items will be added here dynamically -->
                             </tbody>
                         </table>
                     </div>
-                </div>
-                
-                <!-- Add Custom Item -->
-                <div style="background: #f8f9fa; padding: 20px; border: 1px solid #eee; margin-bottom: 20px;">
-                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 15px;">ADD CUSTOM ITEM</div>
-                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                        <div>
-                            <div style="font-size: 12px; color: #666; margin-bottom: 5px;">ITEM DESCRIPTION</div>
-                            <input type="text" class="form-control" placeholder="Enter item description" style="padding: 10px; font-size: 14px;">
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: #666; margin-bottom: 5px;">QUANTITY</div>
-                            <input type="number" class="form-control" value="1" min="1" style="padding: 10px; font-size: 14px;">
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: #666; margin-bottom: 5px;">UNIT</div>
-                            <select class="form-control" style="padding: 10px; font-size: 14px;">
-                                <option value="units">Units</option>
-                                <option value="cases">Cases</option>
-                                <option value="packs">Packs</option>
-                                <option value="liters">Liters</option>
-                            </select>
-                        </div>
-                        <button class="btn" style="padding: 12px 20px; font-size: 13px;">
-                            <i class="fas fa-plus"></i> ADD
-                        </button>
+                    
+                    <div id="emptyState" style="text-align: center; padding: 40px; color: #888;">
+                        <i class="fas fa-shopping-cart" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                        <div style="font-size: 14px; margin-bottom: 5px;">No items added to requisition yet</div>
+                        <div style="font-size: 12px; color: #aaa;">Add items from the dropdown above</div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Summary -->
-            <div style="background: #f8f9fa; padding: 20px; border: 1px solid #eee;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span style="font-weight: 600;">Subtotal:</span>
-                    <span style="font-weight: 600;">$59.94</span>
+        </div>
+
+        <div>
+            <div class="card" style="border: 1px solid #eee;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-check-circle" style="margin-right: 10px;"></i> SUBMIT
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>VAT (12%):</span>
-                    <span>$7.19</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 10px;">
-                    <span>TOTAL ESTIMATED COST:</span>
-                    <span>$67.13</span>
+                <div class="card-body" style="padding: 20px;">
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="font-size: 14px; margin-bottom: 12px; color: #000; font-weight: 600;">Workflow Info</h4>
+                        <div style="font-size: 13px; color: #666; line-height: 1.6;">
+                            <p style="margin-bottom: 8px; display: flex; align-items: center;">
+                                <i class="fas fa-arrow-right" style="color: #0984e3; margin-right: 8px; font-size: 12px;"></i> Submitted to Purchasing
+                            </p>
+                            <p style="margin-bottom: 8px; display: flex; align-items: center;">
+                                <i class="fas fa-arrow-right" style="color: #0984e3; margin-right: 8px; font-size: 12px;"></i> Inventory Check
+                            </p>
+                            <p style="display: flex; align-items: center;">
+                                <i class="fas fa-arrow-right" style="color: #0984e3; margin-right: 8px; font-size: 12px;"></i> Warehouse Delivery
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%; padding: 15px; font-size: 14px; font-weight: 600; background: #000; border: 1px solid #000; color: white;">
+                        <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> SUBMIT REQUEST
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Right Column: Approval Info & Actions -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-check-circle" style="margin-right: 10px;"></i> SUBMISSION & APPROVAL
-        </div>
-        <div class="card-body">
-            <!-- Approval Workflow -->
-            <div style="margin-bottom: 30px;">
-                <h4 style="font-size: 16px; margin-bottom: 15px; color: #000;">APPROVAL WORKFLOW</h4>
-                <div style="position: relative; padding-left: 30px;">
-                    <!-- Step 1 -->
-                    <div style="margin-bottom: 30px; position: relative;">
-                                        <div style="position: absolute; left: -30px; top: 0;">
-                                            <div style="width: 24px; height: 24px; background: #00b894; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                                                1
-                                            </div>
-                                        </div>
-                                        <div style="font-weight: 600; margin-bottom: 5px;">You Submit</div>
-                                        <div style="font-size: 13px; color: #666;">Requester creates and submits requisition</div>
-                                    </div>
-                                    
-                                    <!-- Step 2 -->
-                                    <div style="margin-bottom: 30px; position: relative;">
-                                        <div style="position: absolute; left: -30px; top: 0;">
-                                            <div style="width: 24px; height: 24px; background: #0984e3; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                                                2
-                                            </div>
-                                        </div>
-                                        <div style="font-weight: 600; margin-bottom: 5px;">Department Head</div>
-                                        <div style="font-size: 13px; color: #666;">{{ user.department|default:'Sales' }} Department Head reviews</div>
-                                    </div>
-                                    
-                                    <!-- Step 3 -->
-                                    <div style="margin-bottom: 30px; position: relative;">
-                                        <div style="position: absolute; left: -30px; top: 0;">
-                                            <div style="width: 24px; height: 24px; background: #6c5ce7; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                                                3
-                                            </div>
-                                        </div>
-                                        <div style="font-weight: 600; margin-bottom: 5px;">Management Approval</div>
-                                        <div style="font-size: 13px; color: #666;">Final approval by management</div>
-                                    </div>
-                                    
-                                    <!-- Step 4 -->
-                                    <div style="position: relative;">
-                                        <div style="position: absolute; left: -30px; top: 0;">
-                                            <div style="width: 24px; height: 24px; background: #fdcb6e; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                                                4
-                                            </div>
-                                        </div>
-                                        <div style="font-weight: 600; margin-bottom: 5px;">Processing & Delivery</div>
-                                        <div style="font-size: 13px; color: #666;">Purchasing processes and warehouse delivers</div>
-                                    </div>
-                                    
-                                    <!-- Connecting Line -->
-                                    <div style="position: absolute; left: -18px; top: 24px; bottom: 24px; width: 2px; background: linear-gradient(to bottom, #00b894, #0984e3, #6c5ce7, #fdcb6e);"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Estimated Timeline -->
-                            <div style="margin-bottom: 30px;">
-                                <h4 style="font-size: 16px; margin-bottom: 15px; color: #000;">ESTIMATED TIMELINE</h4>
-                                <div style="background: #f8f9fa; padding: 15px; border: 1px solid #eee;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <span style="font-size: 13px;">Department Approval:</span>
-                                        <span style="font-weight: 600; color: #0984e3;">1-2 business days</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <span style="font-size: 13px;">Management Approval:</span>
-                                        <span style="font-weight: 600; color: #6c5ce7;">1-3 business days</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between;">
-                                        <span style="font-size: 13px;">Delivery After Approval:</span>
-                                        <span style="font-weight: 600; color: #00b894;">24 hours</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Department Limits -->
-                            <div style="margin-bottom: 30px;">
-                                <h4 style="font-size: 16px; margin-bottom: 15px; color: #000;">DEPARTMENT LIMITS</h4>
-                                <div style="background: #f8f9fa; padding: 15px; border: 1px solid #eee;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <span style="font-size: 13px;">Monthly Budget:</span>
-                                        <span style="font-weight: 600;">$1,500.00</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <span style="font-size: 13px;">Used This Month:</span>
-                                        <span>$850.00</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <span style="font-size: 13px;">Remaining Budget:</span>
-                                        <span style="font-weight: 600; color: #00b894;">$650.00</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between;">
-                                        <span style="font-size: 13px;">This Request:</span>
-                                        <span style="font-weight: 600;">$67.13</span>
-                                    </div>
-                                    
-                                    <!-- Budget Progress -->
-                                    <div style="margin-top: 15px;">
-                                        <div style="height: 8px; background: #eee; border-radius: 4px; overflow: hidden;">
-                                            <div style="width: 56.7%; height: 100%; background: linear-gradient(90deg, #0984e3, #00b894);"></div>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: #666;">
-                                            <span>56.7% used</span>
-                                            <span>$650.00 remaining</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Submit Button -->
-                            <div>
-                                <button class="btn" style="width: 100%; padding: 15px; font-size: 14px; margin-bottom: 15px;">
-                                    <i class="fas fa-paper-plane"></i> SUBMIT REQUISITION
-                                </button>
-                                
-                                <button class="btn btn-secondary" style="width: 100%; padding: 15px; font-size: 14px;">
-                                    <i class="fas fa-save"></i> SAVE AS DRAFT
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Important Notes -->
-                <div class="card">
-                    <div class="card-body">
-                        <div style="display: flex; gap: 15px; align-items: flex-start;">
-                            <div style="color: #0984e3; font-size: 20px;">
-                                <i class="fas fa-info-circle"></i>
-                            </div>
-                            <div>
-                                <h4 style="font-size: 16px; margin-bottom: 10px; color: #000;">IMPORTANT NOTES</h4>
-                                <ul style="color: #666; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                                    <li>All requisitions require approval from your Department Head and Management</li>
-                                    <li>Items marked as "Out of Stock" will be placed on backorder and may delay delivery</li>
-                                    <li>You will receive email notifications at each approval stage</li>
-                                    <li>Requisitions over $500 require additional Finance Department approval</li>
-                                    <li>You can cancel pending requisitions before they reach Department Head approval</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endblock %}
+</form>
+
+<script>
+    function addItem() {
+        const select = document.getElementById('itemSelect');
+        const qtyInput = document.getElementById('qtyInput');
+        const itemID = select.value;
+        const itemName = select.options[select.selectedIndex]?.getAttribute('data-name');
+        const itemSKU = select.options[select.selectedIndex]?.getAttribute('data-sku');
+        const qty = qtyInput.value;
+
+        if (!itemID || qty < 1) {
+            alert("Please select an item and valid quantity.");
+            return;
+        }
+
+        // Hide empty state
+        document.getElementById('emptyState').style.display = 'none';
+
+        const tbody = document.querySelector('#selectedItemsTable tbody');
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f5f5f5';
+
+        row.innerHTML = `
+            <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                <div style="font-weight: 600; font-size: 14px; color: #000;">${itemName}</div>
+            </td>
+            <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-family: monospace; color: #888; font-size: 12px;">${itemSKU}</td>
+            <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                <div style="font-weight: 700; font-size: 16px; color: #0984e3;">${qty}</div>
+            </td>
+            <td style="padding: 16px 12px; text-align: right; vertical-align: middle;">
+                <button type="button" class="btn" onclick="removeItem(this)" style="padding: 6px 12px; font-size: 11px; background: #ff6b6b; border: none; color: white; text-decoration: none;">
+                    <i class="fas fa-trash" style="margin-right: 4px;"></i> REMOVE
+                </button>
+                <input type="hidden" name="item_ids" value="${itemID}">
+                <input type="hidden" name="item_quantities" value="${qty}">
+            </td>
+        `;
+
+        tbody.appendChild(row);
+        
+        // Reset inputs
+        select.value = "";
+        qtyInput.value = 1;
+    }
+
+    function removeItem(btn) {
+        btn.closest('tr').remove();
+        // Check if empty to show empty state
+        const tbody = document.querySelector('#selectedItemsTable tbody');
+        if (tbody.children.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

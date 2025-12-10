@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .company-name { font-size: 20px; font-weight: bold; text-transform: uppercase; }
+        .doc-title { font-size: 16px; font-weight: bold; margin-top: 5px; }
+        
+        .meta-grid { width: 100%; margin-bottom: 30px; }
+        .meta-col { vertical-align: top; width: 50%; }
+        
+        table.items { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        table.items th { 
+            background-color: #eee; border-bottom: 1px solid #333; 
+            padding: 8px; text-align: left; font-weight: bold; font-size: 9pt; 
+        }
+        table.items td { padding: 8px; border-bottom: 1px solid #eee; }
+        .num { text-align: right; }
+        
+        .totals { width: 100%; margin-top: 20px; }
+        .total-row td { padding: 5px; }
+        .grand-total { font-size: 14pt; font-weight: bold; border-top: 2px solid #333; border-bottom: 2px solid #333; }
+        
+        .footer { text-align: center; font-size: 8pt; margin-top: 50px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">M&V BEVERAGES</div>
+        <div class="doc-title">OFFICIAL DELIVERY RECEIPT</div>
+    </div>
+
+    <table class="meta-grid">
+        <tr>
+            <td class="meta-col">
+                <strong>SOLD TO (REQUESTER):</strong><br>
+                {{ req.requester.get_full_name|upper }}<br>
+                {{ req.department }}<br>
+                {{ req.requester.email }}
+            </td>
+            <td class="meta-col" style="text-align: right;">
+                <strong>RECEIPT #:</strong> {{ delivery_ref }}<br>
+                <strong>REF (RF) #:</strong> {{ req.rf_number }}<br>
+                <strong>DATE:</strong> {{ generated_at|date:"M d, Y" }}
+            </td>
+        </tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th width="40%">DESCRIPTION</th>
+                <th width="15%">SKU</th>
+                <th width="15%" class="num">PRICE</th>
+                <th width="10%" class="num">QTY</th>
+                <th width="20%" class="num">AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.item.name }}</td>
+                <td>{{ item.item.sku }}</td>
+                <td class="num">{{ item.item.selling_price|default:item.item.cost_price|floatformat:2 }}</td>
+                <td class="num">{{ item.quantity_requested }}</td>
+                <td class="num">{{ item.total_line_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals">
+        <tr>
+            <td width="60%"></td>
+            <td width="40%">
+                <table width="100%">
+                    <tr class="total-row">
+                        <td>Subtotal:</td>
+                        <td class="num">{{ grand_total|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>Tax (0%):</td>
+                        <td class="num">0.00</td>
+                    </tr>
+                    <tr class="total-row grand-total">
+                        <td>TOTAL:</td>
+                        <td class="num">P {{ grand_total|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Received the above items in good order and condition.<br>
+        This serves as proof of delivery and internal sales record.<br>
+        Generated on {{ generated_at|date:"Y-m-d H:i:s" }}
+    </div>
+</body>
+</html>

@@ -3,368 +3,242 @@
 {% block title %}Create Purchase Order - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>CREATE PURCHASE ORDER</h1>
-        <p style="color: #666; margin-top: 10px;">Create a new purchase order for approved requisitions</p>
+        <p style="color: #666; margin-top: 10px;">Create a new PO for replenishment.</p>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'purchasing_orders' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-arrow-left"></i> CANCEL
+    <div>
+        <a href="{% url 'purchasing_orders' %}" class="btn" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> CANCEL
         </a>
-        <button type="submit" form="poForm" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-save"></i> SAVE PO
-        </button>
     </div>
 </div>
 
-<form id="poForm" method="POST">
+<form method="POST" id="poForm">
     {% csrf_token %}
     
-    <!-- Two Column Layout -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
-        <!-- Left Column: Basic Information -->
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-info-circle" style="margin-right: 10px;"></i> BASIC INFORMATION
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="card" style="border: 1px solid #eee;">
+            <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                PO DETAILS
             </div>
-            <div class="card-body">
-                <!-- PO Number (Auto-generated but editable) -->
-                <div class="form-group">
-                    <label class="form-label">PO NUMBER</label>
-                    <input type="text" class="form-control" name="po_number" value="PO-2024-0017" readonly style="background: #f8f9fa; font-family: monospace; font-weight: 600;">
-                    <small style="font-size: 12px; color: #666;">Auto-generated, but you can edit if needed</small>
+            <div class="card-body" style="padding: 20px;">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Supplier</label>
+                    {{ form.supplier }}
+                    {% if form.supplier.errors %}
+                        <div style="color: #ff6b6b; font-size: 12px; margin-top: 5px;">{{ form.supplier.errors }}</div>
+                    {% endif %}
                 </div>
-                
-                <!-- Requisition Selection -->
-                <div class="form-group">
-                    <label class="form-label">SOURCE REQUISITION</label>
-                    <select class="form-control" name="requisition" required>
-                        <option value="">-- Select Approved Requisition --</option>
-                        {% for req in approved_requisitions %}
-                        <option value="{{ req.id }}">
-                            {{ req.id }} - {{ req.department }} ({{ req.items }} items, ${{ req.total_estimated }})
-                        </option>
-                        {% endfor %}
-                        <option value="manual">Manual Entry (No Requisition)</option>
-                    </select>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Linked Requisition (Optional)</label>
+                    {{ form.requisition }}
+                    <small style="color: #888; font-size: 11px; margin-top: 5px; display: block;">Select if this PO fulfills a specific request</small>
                 </div>
-                
-                <!-- Supplier Selection -->
-                <div class="form-group">
-                    <label class="form-label">SUPPLIER</label>
-                    <select class="form-control" name="supplier" required>
-                        <option value="">-- Select Supplier --</option>
-                        {% for supplier in suppliers %}
-                        <option value="{{ supplier.id }}">
-                            {{ supplier.name }} - {{ supplier.category }} (Rating: {{ supplier.rating }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <!-- Order Details -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label class="form-label">ORDER DATE</label>
-                        <input type="date" class="form-control" name="order_date" value="{{ today|date:'Y-m-d' }}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">DELIVERY DATE</label>
-                        <input type="date" class="form-control" name="delivery_date" required>
-                    </div>
-                </div>
-                
-                <!-- Terms and Conditions -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label class="form-label">PAYMENT TERMS</label>
-                        <select class="form-control" name="payment_terms" required>
-                            <option value="">-- Select Terms --</option>
-                            {% for term in payment_terms %}
-                            <option value="{{ term.value }}">{{ term.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">DELIVERY OPTION</label>
-                        <select class="form-control" name="delivery_option" required>
-                            <option value="">-- Select Option --</option>
-                            {% for option in delivery_options %}
-                            <option value="{{ option.value }}">{{ option.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Selection Justification (Audit)</label>
+                    {{ form.selection_justification }}
+                    <small style="color: #888; font-size: 11px; margin-top: 5px; display: block;">Why was this supplier chosen? (Physical canvass record)</small>
                 </div>
             </div>
         </div>
-        
-        <!-- Right Column: Order Items -->
-        <div class="card">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <i class="fas fa-boxes" style="margin-right: 10px;"></i> ORDER ITEMS
-                </div>
-                <button type="button" class="btn" style="padding: 8px 16px; font-size: 12px;" onclick="addItemRow()">
-                    <i class="fas fa-plus"></i> ADD ITEM
-                </button>
+
+        <div class="card" style="border: 1px solid #eee;">
+            <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                ORDER ITEMS
             </div>
-            <div class="card-body">
-                <!-- Items Table -->
-                <div style="overflow-x: auto; margin-bottom: 20px;">
-                    <table class="table" id="itemsTable">
-                        <thead>
-                            <tr>
-                                <th>ITEM</th>
-                                <th>QUANTITY</th>
-                                <th>UNIT PRICE</th>
-                                <th>TOTAL</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="itemsTableBody">
-                            <!-- Initial row will be added by JavaScript -->
-                        </tbody>
-                    </table>
+            <div class="card-body" style="padding: 20px;">
+                <div style="background: #f8f9fa; border: 1px solid #eee; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Item</label>
+                            <select id="itemSelect" class="form-control" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                                <option value="">-- Select Item --</option>
+                                {% for item in inventory_items %}
+                                <option value="{{ item.id }}" 
+                                        data-name="{{ item.name }}" 
+                                        data-sku="{{ item.sku }}">
+                                    {{ item.name }} ({{ item.sku }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Qty</label>
+                            <input type="number" id="qtyInput" class="form-control" value="1" min="1" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Unit Price (P)</label>
+                            <input type="number" id="priceInput" class="form-control" placeholder="0.00" min="0" step="0.01" style="border: 1px solid #ddd; padding: 10px 15px; font-size: 13px; width: 100%;">
+                        </div>
+                        <button type="button" class="btn" onclick="addItem()" style="padding: 10px 15px; font-size: 13px; background: #00b894; border: 1px solid #00b894; color: white; height: 50px;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 
-                <!-- Order Summary -->
-                <div style="background: #f8f9fa; padding: 20px; margin-top: 20px;">
-                    <h4 style="font-size: 14px; margin-bottom: 15px; color: #666;">ORDER SUMMARY</h4>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Subtotal:</span>
-                        <span id="subtotal" style="font-weight: 600;">$0.00</span>
+                <div style="min-height: 200px;">
+                    <div style="overflow-x: auto;">
+                        <table class="table" id="poItemsTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 40%;">Item</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">Qty</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">Price</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">Total</th>
+                                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 5%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be added here dynamically -->
+                            </tbody>
+                        </table>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Tax (8.5%):</span>
-                        <span id="tax" style="font-weight: 600;">$0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Shipping:</span>
-                        <span id="shipping" style="font-weight: 600;">$0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-top: 10px; border-top: 1px solid #ddd;">
-                        <span style="font-weight: 600;">Total:</span>
-                        <span id="total" style="font-weight: 800; font-size: 18px; color: #000;">$0.00</span>
-                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee;">
+                    <div style="font-size: 13px; color: #666;">Estimated Total Amount</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #000;">P<span id="grandTotal">0.00</span></div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Bottom Section: Notes and Terms -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
-        <!-- Left: Order Notes -->
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-sticky-note" style="margin-right: 10px;"></i> ORDER NOTES
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label class="form-label">INTERNAL NOTES</label>
-                    <textarea class="form-control" name="internal_notes" rows="4" placeholder="Enter any internal notes about this order..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">SUPPLIER NOTES</label>
-                    <textarea class="form-control" name="supplier_notes" rows="4" placeholder="Enter notes to be included on the PO..."></textarea>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Right: Terms and Conditions -->
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-file-contract" style="margin-right: 10px;"></i> TERMS & CONDITIONS
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 20px;">
-                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">STANDARD TERMS</h4>
-                    <div style="font-size: 13px; color: #666; line-height: 1.6;">
-                        <p>1. All goods must be delivered in accordance with the delivery schedule specified above.</p>
-                        <p>2. Payment terms are as specified in the payment terms section.</p>
-                        <p>3. Supplier warrants that all goods will be free from defects in material and workmanship.</p>
-                        <p>4. Any changes to this order must be approved in writing by both parties.</p>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">ADDITIONAL TERMS</label>
-                    <textarea class="form-control" name="additional_terms" rows="3" placeholder="Enter any additional terms and conditions..."></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Approval Section -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-check-double" style="margin-right: 10px;"></i> APPROVAL PROCESS
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <input type="checkbox" id="budget_check" name="budget_check" style="width: 18px; height: 18px;">
-                        <label for="budget_check" style="font-weight: 600; font-size: 14px;">Budget Check</label>
-                    </div>
-                    <p style="font-size: 13px; color: #666;">Verify that sufficient budget exists for this purchase.</p>
-                </div>
-                
-                <div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <input type="checkbox" id="supplier_check" name="supplier_check" style="width: 18px; height: 18px;">
-                        <label for="supplier_check" style="font-weight: 600; font-size: 14px;">Supplier Verification</label>
-                    </div>
-                    <p style="font-size: 13px; color: #666;">Confirm supplier is approved and in good standing.</p>
-                </div>
-                
-                <div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <input type="checkbox" id="terms_check" name="terms_check" style="width: 18px; height: 18px;">
-                        <label for="terms_check" style="font-weight: 600; font-size: 14px;">Terms Review</label>
-                    </div>
-                    <p style="font-size: 13px; color: #666;">Review all terms and conditions for compliance.</p>
-                </div>
-                
-                <div>
-                    <label class="form-label" style="margin-bottom: 10px;">APPROVAL ROUTING</label>
-                    <select class="form-control" name="approver">
-                        <option value="">-- Select Approver --</option>
-                        <option value="finance_director">Finance Director</option>
-                        <option value="operations_manager">Operations Manager</option>
-                        <option value="vp_purchasing">VP of Purchasing</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+
+    <div style="text-align: right;">
+        <button type="submit" class="btn" style="padding: 15px 40px; font-size: 14px; background: #000; border: 1px solid #000; color: white; font-weight: 600;">
+            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> CREATE PURCHASE ORDER
+        </button>
     </div>
 </form>
 
-<!-- Quick Instructions -->
-<div class="card" style="margin-top: 40px;">
-    <div class="card-header">
-        <i class="fas fa-info-circle" style="margin-right: 10px;"></i> PURCHASE ORDER GUIDELINES
-    </div>
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">BEFORE CREATING PO</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Ensure requisition is fully approved</li>
-                    <li>Verify supplier is approved and active</li>
-                    <li>Check budget availability</li>
-                    <li>Review supplier performance ratings</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">DURING CREATION</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Double-check item quantities</li>
-                    <li>Verify pricing with supplier quotes</li>
-                    <li>Specify clear delivery requirements</li>
-                    <li>Include all necessary terms</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">AFTER CREATION</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Submit for management approval</li>
-                    <li>Send PO to supplier promptly</li>
-                    <li>Track delivery status</li>
-                    <li>Update requisition status</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for Dynamic Items -->
 <script>
-let itemCounter = 0;
-const TAX_RATE = 0.085;
-const SHIPPING_RATE = 50; // Flat shipping rate
+    let totalAmount = 0;
 
-function addItemRow(itemData = null) {
-    const tbody = document.getElementById('itemsTableBody');
-    const rowId = `item_${itemCounter++}`;
-    
-    const row = document.createElement('tr');
-    row.id = rowId;
-    
-    row.innerHTML = `
-        <td>
-            <div style="display: grid; gap: 10px;">
-                <input type="text" class="form-control" name="items[${rowId}][sku]" placeholder="SKU" style="font-family: monospace;">
-                <input type="text" class="form-control" name="items[${rowId}][description]" placeholder="Item Description" required>
-            </div>
-        </td>
-        <td>
-            <input type="number" class="form-control" name="items[${rowId}][quantity]" placeholder="Qty" min="1" step="1" style="width: 80px;" required onchange="calculateTotals()">
-        </td>
-        <td>
-            <div style="display: flex; align-items: center;">
-                <span style="margin-right: 5px;">$</span>
-                <input type="number" class="form-control" name="items[${rowId}][unit_price]" placeholder="0.00" min="0" step="0.01" style="width: 100px;" required onchange="calculateTotals()">
-            </div>
-        </td>
-        <td style="font-weight: 600;" id="total_${rowId}">$0.00</td>
-        <td>
-            <button type="button" class="btn" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; font-size: 11px; cursor: pointer;" onclick="removeItemRow('${rowId}')">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    `;
-    
-    tbody.appendChild(row);
-    calculateTotals();
-}
+    // 1. Function to add item from the Manual Inputs
+    function addItem() {
+        const itemSelect = document.getElementById('itemSelect');
+        const qtyInput = document.getElementById('qtyInput');
+        const priceInput = document.getElementById('priceInput');
+        
+        const itemId = itemSelect.value;
+        // Get name safely (optional chaining)
+        const itemName = itemSelect.options[itemSelect.selectedIndex]?.getAttribute('data-name');
+        const qty = parseInt(qtyInput.value);
+        const price = parseFloat(priceInput.value);
 
-function removeItemRow(rowId) {
-    const row = document.getElementById(rowId);
-    if (row) {
-        row.remove();
-        calculateTotals();
-    }
-}
-
-function calculateTotals() {
-    const rows = document.querySelectorAll('#itemsTableBody tr');
-    let subtotal = 0;
-    
-    rows.forEach(row => {
-        const quantityInput = row.querySelector('input[name*="[quantity]"]');
-        const priceInput = row.querySelector('input[name*="[unit_price]"]');
-        const totalCell = row.querySelector('td:nth-child(4)');
-        
-        const quantity = parseFloat(quantityInput.value) || 0;
-        const unitPrice = parseFloat(priceInput.value) || 0;
-        const itemTotal = quantity * unitPrice;
-        
-        subtotal += itemTotal;
-        
-        if (totalCell) {
-            totalCell.textContent = `$${itemTotal.toFixed(2)}`;
+        // Validation
+        if (!itemId) {
+            alert("Please select an item.");
+            return;
         }
-    });
-    
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax + SHIPPING_RATE;
-    
-    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('shipping').textContent = `$${SHIPPING_RATE.toFixed(2)}`;
-    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
-}
+        if (qty <= 0 || isNaN(qty)) {
+            alert("Please enter a valid quantity.");
+            return;
+        }
+        if (isNaN(price) || price < 0) {
+            alert("Please enter a valid price.");
+            return;
+        }
 
-// Add initial row when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    addItemRow();
-});
+        // Add the row
+        createRow(itemId, itemName, qty, price);
+        
+        // Reset inputs for next item
+        itemSelect.value = "";
+        qtyInput.value = 1;
+        priceInput.value = "";
+    }
+
+    // 2. Helper function to create the HTML row and update totals
+    function createRow(id, name, qty, price) {
+        const lineTotal = qty * price;
+        totalAmount += lineTotal;
+
+        const tbody = document.querySelector('#poItemsTable tbody');
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f5f5f5';
+        
+        row.innerHTML = `
+            <td style="padding: 12px; text-align: left; vertical-align: middle;">
+                <div style="font-weight: 600; font-size: 14px; color: #000;">${name}</div>
+            </td>
+            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; color: #000;">
+                ${qty}
+            </td>
+            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 13px; color: #000;">
+                P${price.toFixed(2)}
+            </td>
+            <td style="padding: 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; color: #0984e3;">
+                P${lineTotal.toFixed(2)}
+            </td>
+            <td style="padding: 12px; text-align: left; vertical-align: middle;">
+                <button type="button" class="btn" onclick="removeItem(this, ${lineTotal})" style="padding: 4px 10px; font-size: 11px; background: #ff6b6b; border: 1px solid #ff6b6b; color: white; text-decoration: none;">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <input type="hidden" name="item_ids" value="${id}">
+                <input type="hidden" name="quantities" value="${qty}">
+                <input type="hidden" name="prices" value="${price}">
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+        updateGrandTotal();
+    }
+
+    // 3. Remove Item Function
+    function removeItem(btn, lineTotal) {
+        btn.closest('tr').remove();
+        totalAmount -= lineTotal;
+        updateGrandTotal();
+    }
+
+    // 4. Update Grand Total Display
+    function updateGrandTotal() {
+        // Prevent negative zero issues
+        if (totalAmount < 0) totalAmount = 0;
+        document.getElementById('grandTotal').innerText = totalAmount.toFixed(2);
+    }
+
+    // 5. AUTO-FILL LOGIC
+    // If a linked_req was passed from the view, this loop generates JS calls to pre-fill the table.
+    {% if linked_req %}
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Auto-filling items from Requisition #{{ linked_req.id }}");
+        
+        {% for req_item in linked_req.items.all %}
+            // Using Django template tags to insert values into JS function calls
+            createRow(
+                "{{ req_item.item.id }}", 
+                "{{ req_item.item.name|escapejs }}", 
+                {{ req_item.quantity_requested }},
+                {{ req_item.item.cost_price|default:0 }} // Defaults to 0 if no cost price set
+            );
+        {% endfor %}
+    });
+    {% endif %}
+
+    // 6. Style form controls
+    document.addEventListener('DOMContentLoaded', function() {
+        // Style form fields
+        const formControls = document.querySelectorAll('select, input, textarea');
+        formControls.forEach(control => {
+            control.style.border = '1px solid #ddd';
+            control.style.padding = '10px 15px';
+            control.style.fontSize = '13px';
+            control.style.width = '100%';
+            
+            control.addEventListener('focus', function() {
+                this.style.outline = 'none';
+                this.style.borderColor = '#000';
+            });
+            
+            control.addEventListener('blur', function() {
+                this.style.borderColor = '#ddd';
+            });
+        });
+    });
 </script>
 {% endblock %}

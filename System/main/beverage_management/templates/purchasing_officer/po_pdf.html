@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .info-grid {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .info-col {
+            vertical-align: top;
+            width: 50%;
+        }
+        .box {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-right: 10px;
+        }
+        .box-title {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+        }
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        table.items th {
+            text-align: left;
+            background-color: #000;
+            color: #fff;
+            padding: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        table.items td {
+            border-bottom: 1px solid #eee;
+            padding: 10px 8px;
+        }
+        .totals {
+            width: 100%;
+            text-align: right;
+            margin-bottom: 50px;
+        }
+        .grand-total {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 2px solid #000;
+            padding-top: 5px;
+            display: inline-block;
+        }
+        
+        /* --- SIGNATURE STYLES --- */
+        .signature-table {
+            width: 100%;
+            margin-top: 50px;
+        }
+        .sig-space {
+            height: 50px; /* Space for the signature */
+            border-bottom: 1px solid #000; /* THE LINE - Attached to the bottom of the space */
+            width: 90%; /* Line width relative to the cell */
+            margin: 0 auto 5px auto; /* Centers line in cell, adds 5px space below it */
+        }
+        .sig-name {
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+        .sig-title {
+            font-size: 10px;
+            color: #666;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+        /* ------------------------ */
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">PURCHASE ORDER</div>
+        <div class="subtitle">Official Procurement Document</div>
+    </div>
+
+    <table class="info-grid">
+        <tr>
+            <td class="info-col">
+                <div class="box">
+                    <div class="box-title">Vendor</div>
+                    <div style="font-weight: bold; font-size: 14px;">{{ po.supplier.name }}</div>
+                    <div>{{ po.supplier.contact_person }}</div>
+                    <div>{{ po.supplier.address }}</div>
+                    <div>{{ po.supplier.phone }}</div>
+                    <div>{{ po.supplier.email }}</div>
+                </div>
+            </td>
+            <td class="info-col">
+                <div class="box" style="margin-right: 0; margin-left: 10px;">
+                    <div class="box-title">Order Details</div>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">PO Number:</td>
+                            <td style="text-align: right; font-weight: bold;">{{ po.po_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Date:</td>
+                            <td style="text-align: right;">{{ po.date_created|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Created By:</td>
+                            <td style="text-align: right;">{{ po.created_by.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Status:</td>
+                            <td style="text-align: right; text-transform: uppercase;">{{ po.status }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th width="45%">Item Description</th>
+                <th width="15%" style="text-align: center;">Qty</th>
+                <th width="20%" style="text-align: right;">Unit Price</th>
+                <th width="20%" style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>
+                    <strong>{{ item.item.name }}</strong><br>
+                    <span style="font-size: 10px; color: #666;">SKU: {{ item.item.sku }}</span>
+                </td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">{{ item.unit_price }}</td>
+                <td style="text-align: right; font-weight: bold;">{{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="grand-total">
+            TOTAL AMOUNT: &nbsp;&nbsp; PHP {{ grand_total|floatformat:2 }}
+        </div>
+    </div>
+
+    <table class="signature-table">
+        <tr>
+            <td width="60%">
+                </td>
+            <td width="40%" align="center">
+                <div class="sig-space"></div>
+                
+                <div class="sig-name">TOP MANAGEMENT / VP'S</div>
+                <div class="sig-title">Authorized Approval</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Generated on {{ generated_at|date:"Y-m-d H:i:s" }} | Beverage ERP System
+    </div>
+
+</body>
+</html>

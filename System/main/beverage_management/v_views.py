@@ -3,7 +3,16 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import UserRegistrationForm, UserLoginForm
-from .models import User
+from .models import User, UserActivityLog
+
+def create_log(user, action, details, request=None):
+    ip = request.META.get('REMOTE_ADDR') if request else None
+    UserActivityLog.objects.create(
+        user=user,
+        action=action,
+        details=details,
+        ip_address=ip
+    )
 
 def home(request):
     return render(request, 'login_register/home.html')
@@ -36,6 +45,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            create_log(user, "User Login", "User logged in successfully", request)
             messages.success(request, f'Welcome back, {user.username}!')
             return redirect_to_role_dashboard(user.role)
         else:

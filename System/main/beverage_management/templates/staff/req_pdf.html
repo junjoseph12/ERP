@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .info-grid {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .info-col {
+            vertical-align: top;
+            width: 50%;
+        }
+        .box {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-right: 10px;
+        }
+        .box-title {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+        }
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        table.items th {
+            text-align: left;
+            background-color: #000;
+            color: #fff;
+            padding: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        table.items td {
+            border-bottom: 1px solid #eee;
+            padding: 10px 8px;
+        }
+        
+        /* --- SIGNATURE STYLES (MATCHING PO FORMAT) --- */
+        .signature-table {
+            width: 100%;
+            margin-top: 50px;
+        }
+        .sig-space {
+            height: 50px; 
+            border-bottom: 1px solid #000; /* THE LINE */
+            width: 80%; 
+            margin: 0 auto 5px auto; 
+        }
+        .sig-name {
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+        .sig-title {
+            font-size: 10px;
+            color: #666;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+        /* ------------------------------------------- */
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">REQUISITION SLIP</div>
+        <div class="subtitle">Internal Stock Request Form</div>
+    </div>
+
+    <table class="info-grid">
+        <tr>
+            <td class="info-col">
+                <div class="box">
+                    <div class="box-title">Requester Details</div>
+                    <div style="font-weight: bold; font-size: 14px;">{{ req.requester.get_full_name }}</div>
+                    <div>Department: {{ req.department }}</div>
+                    <div>Purpose: {{ req.get_purpose_display }}</div>
+                    <div>Email: {{ req.requester.email }}</div>
+                </div>
+            </td>
+            <td class="info-col">
+                <div class="box" style="margin-right: 0; margin-left: 10px;">
+                    <div class="box-title">Request Info</div>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">RF Number:</td>
+                            <td style="text-align: right; font-weight: bold;">{{ req.rf_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Date Submitted:</td>
+                            <td style="text-align: right;">{{ req.date_created|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Date Needed:</td>
+                            <td style="text-align: right; font-weight: bold; color: #d63031;">
+                                {{ req.date_needed|date:"M d, Y"|default:"ASAP" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px 0; color: #666;">Status:</td>
+                            <td style="text-align: right; text-transform: uppercase;">{{ req.status }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th width="50%">Item Name</th>
+                <th width="25%">SKU</th>
+                <th width="25%" style="text-align: center;">Qty Requested</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td><strong>{{ item.item.name }}</strong></td>
+                <td>{{ item.item.sku }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ item.quantity_requested }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; font-size: 11px;">
+        <strong>Notes:</strong><br>
+        <div style="border: 1px solid #eee; padding: 10px; background: #f9f9f9; min-height: 40px;">
+            {{ req.notes|default:"No additional notes." }}
+        </div>
+    </div>
+
+    <table class="signature-table">
+        <tr>
+            <td width="60%">
+                </td>
+            <td width="40%" align="center">
+                <div class="sig-space"></div>
+                <div class="sig-name">WAREHOUSE CUSTODIAN</div>
+                <div class="sig-title">Authorized Approval</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Generated on {{ generated_at|date:"Y-m-d H:i:s" }} | Beverage ERP System
+    </div>
+
+</body>
+</html>
