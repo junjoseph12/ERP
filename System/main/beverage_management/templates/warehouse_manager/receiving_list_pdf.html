@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4 landscape;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #333; }
+        h1 { font-size: 16pt; color: #000; margin-bottom: 5px; }
+        h2 { font-size: 12pt; color: #000; margin-top: 15px; border-bottom: 1px solid #999; padding-bottom: 3px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; background-color: #f0f0f0; padding: 6px; font-weight: bold; border-bottom: 1px solid #000; font-size: 9pt; }
+        td { padding: 6px; border-bottom: 1px solid #eee; font-size: 9pt; vertical-align: top; }
+    </style>
+</head>
+<body>
+    <h1>RECEIVING & SHIPMENTS REPORT</h1>
+    <div style="font-size: 9pt; color: #666; margin-bottom: 20px;">
+        Generated on: {{ generated_at|date:"F d, Y H:i" }} | By: {{ user.get_full_name }}
+    </div>
+
+    <h2>1. Incoming Shipments (In Transit)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th width="20%">PO Number</th>
+                <th width="30%">Supplier</th>
+                <th width="20%">Date Ordered</th>
+                <th width="15%">Items Count</th>
+                <th width="15%">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for po in incoming_pos %}
+            <tr>
+                <td>{{ po.po_number }}</td>
+                <td>{{ po.supplier.name }}</td>
+                <td>{{ po.date_created|date:"M d, Y" }}</td>
+                <td>{{ po.items.count }}</td>
+                <td style="color: #2980b9; font-weight: bold;">IN TRANSIT</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No incoming shipments at this time.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 30px;">2. Receiving History (Recent)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th width="20%">RM Number</th>
+                <th width="20%">PO Ref</th>
+                <th width="20%">Supplier DR</th>
+                <th width="20%">Date Received</th>
+                <th width="20%">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rm in received_history %}
+            <tr>
+                <td>{{ rm.rm_number }}</td>
+                <td>{{ rm.purchase_order.po_number }}</td>
+                <td>{{ rm.delivery_receipt_no }}</td>
+                <td>{{ rm.date_received|date:"M d, Y" }}</td>
+                <td>
+                    {% if rm.status == 'accepted' %}<span style="color: #27ae60; font-weight: bold;">ACCEPTED</span>
+                    {% else %}<span style="color: #c0392b; font-weight: bold;">REJECTED</span>{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No receiving history found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footerContent">
+        <div style="text-align: center; color: #888; font-size: 8pt; border-top: 1px solid #ddd; padding-top: 5px;">
+             Warehouse Receiving Report | Page <pdf:pagenumber>
+        </div>
+    </div>
+</body>
+</html>

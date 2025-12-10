@@ -1,173 +1,220 @@
-from django.shortcuts import render, redirect
+
+# v_staff_views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
+from django.urls import reverse  # <--- THIS WAS MISSING
+from .models import InventoryItem, RequisitionForm, RequisitionItem, InternalDelivery
 
+# PDF Imports
+from django.http import HttpResponse 
+from django.template.loader import get_template 
+from xhtml2pdf import pisa 
+
+# ==========================================
+# 1. STAFF DASHBOARD
+# ==========================================
 @login_required
 def staff_dashboard_view(request):
-    # Check if user is staff
-    if request.user.role != 'staff':
-        messages.error(request, 'Access denied. Staff privileges required.')
-        return redirect('home')
+    available_beverages = InventoryItem.objects.count()
+    categories = InventoryItem.objects.values('category').distinct().count()
     
-    # Mock data for staff dashboard
+    if request.user.department == 'Sales Department':
+        my_requisitions_count = RequisitionForm.objects.count()
+        pending_approvals = RequisitionForm.objects.filter(
+            status__in=['pending_dept_head', 'pending_vp']
+        ).count()
+        recent_requisitions = RequisitionForm.objects.all().order_by('-date_created')[:5]
+    else:
+        my_requisitions_count = RequisitionForm.objects.filter(requester=request.user).count()
+        pending_approvals = RequisitionForm.objects.filter(
+            requester=request.user, 
+            status__in=['pending_dept_head', 'pending_vp']
+        ).count()
+        recent_requisitions = RequisitionForm.objects.filter(requester=request.user).order_by('-date_created')[:5]
+    
+    inventory_alerts = InventoryItem.objects.filter(quantity__lte=20)[:5]
+    popular_beverages = InventoryItem.objects.all()[:4]
+
     context = {
-        'user': request.user,
-        'dashboard_title': 'Staff Dashboard',
-        
-        # Main Stats
-        'available_beverages': 156,
-        'my_requisitions': 8,
-        'pending_approvals': 2,
-        'categories': 8,
-        'awaiting_delivery': 3,
-        'department_requests': 15,
-        'success_rate': '85%',
-        'approved_requisitions': 5,
-        'pending_requisitions': 2,
-        'delivered_requisitions': 3,
-        'rejected_requisitions': 0,
-        
-        # Recent Requisitions
-        'recent_requisitions': [
-            {
-                'id': 'REQ-001',
-                'status': 'Approved',
-                'items': 5,
-                'quantity': 25,
-                'date': 'Jan 10'
-            },
-            {
-                'id': 'REQ-002',
-                'status': 'Pending',
-                'items': 3,
-                'quantity': 15,
-                'date': 'Jan 12'
-            },
-            {
-                'id': 'REQ-003',
-                'status': 'Delivered',
-                'items': 8,
-                'quantity': 40,
-                'date': 'Jan 5'
-            },
-            {
-                'id': 'REQ-004',
-                'status': 'Approved',
-                'items': 4,
-                'quantity': 20,
-                'date': 'Jan 8'
-            },
-            {
-                'id': 'REQ-005',
-                'status': 'Pending',
-                'items': 6,
-                'quantity': 30,
-                'date': 'Jan 14'
-            },
-        ],
-        
-        # Inventory Alerts
-        'inventory_alerts': [
-            {
-                'item': 'Coca-Cola 330ml',
-                'category': 'Soft Drinks',
-                'status': 'Low Stock',
-                'stock': 12
-            },
-            {
-                'item': 'Red Bull 250ml',
-                'category': 'Energy Drinks',
-                'status': 'Available',
-                'stock': 45
-            },
-            {
-                'item': 'Mineral Water 500ml',
-                'category': 'Water',
-                'status': 'Out of Stock',
-                'stock': 0
-            },
-            {
-                'item': 'Orange Juice 1L',
-                'category': 'Juices',
-                'status': 'Available',
-                'stock': 65
-            },
-            {
-                'item': 'Pepsi 500ml',
-                'category': 'Soft Drinks',
-                'status': 'Low Stock',
-                'stock': 8
-            },
-        ],
-        
-        # Popular Beverages
-        'popular_beverages': [
-            {
-                'name': 'Coca-Cola',
-                'category': 'Soft Drinks',
-                'stock': 45
-            },
-            {
-                'name': 'Red Bull',
-                'category': 'Energy Drinks',
-                'stock': 85
-            },
-            {
-                'name': 'Orange Juice',
-                'category': 'Juices',
-                'stock': 65
-            },
-            {
-                'name': 'Mineral Water',
-                'category': 'Water',
-                'stock': 120
-            },
-            {
-                'name': 'Sprite',
-                'category': 'Soft Drinks',
-                'stock': 35
-            },
-            {
-                'name': 'Gatorade',
-                'category': 'Sports Drinks',
-                'stock': 55
-            },
-        ]
+        'available_beverages': available_beverages,
+        'categories': categories,
+        'my_requisitions': my_requisitions_count,
+        'pending_approvals': pending_approvals,
+        'recent_requisitions': recent_requisitions,
+        'inventory_alerts': inventory_alerts,
+        'popular_beverages': popular_beverages,
     }
     return render(request, 'staff/dashboard.html', context)
 
+# ==========================================
+# 2. INVENTORY CATALOG
+# ==========================================
 @login_required
 def staff_inventory_view(request):
-    if request.user.role != 'staff':
-        messages.error(request, 'Access denied. Staff privileges required.')
-        return redirect('home')
+    if request.user.department == 'Sales Department':
+        messages.error(request, "Access Denied: Sales Department cannot browse inventory.")
+        return redirect('staff_dashboard')
+
+    items = InventoryItem.objects.all().order_by('name')
     
+    search = request.GET.get('search')
+    category = request.GET.get('category')
+    
+    if search:
+        items = items.filter(name__icontains=search)
+    if category:
+        items = items.filter(category=category)
+        
     context = {
-        'user': request.user,
-        'page_title': 'View Inventory'
+        'inventory_items': items,
     }
     return render(request, 'staff/inventory.html', context)
 
+# ==========================================
+# 3. SUBMIT REQUISITION
+# ==========================================
 @login_required
 def staff_requisition_view(request):
-    if request.user.role != 'staff':
-        messages.error(request, 'Access denied. Staff privileges required.')
-        return redirect('home')
-    
-    context = {
-        'user': request.user,
-        'page_title': 'Submit Requisition'
-    }
-    return render(request, 'staff/submit_requisition.html', context)
+    if request.user.department != 'Requesting Party Department':
+        messages.error(request, "Access Denied.")
+        return redirect('staff_dashboard')
 
+    if request.method == 'POST':
+        purpose = request.POST.get('purpose')
+        notes = request.POST.get('notes')
+        item_ids = request.POST.getlist('item_ids')
+        quantities = request.POST.getlist('item_quantities')
+        
+        if not item_ids:
+            messages.error(request, "Please add at least one item.")
+            return redirect('staff_requisition')
+
+        last_rf = RequisitionForm.objects.last()
+        next_id = 1 if not last_rf else last_rf.id + 1
+        rf_number = f"RF-{timezone.now().year}-{next_id:04d}"
+        
+        rf = RequisitionForm.objects.create(
+            requester=request.user,
+            rf_number=rf_number,
+            department=request.user.department or "General",
+            purpose=purpose,
+            notes=notes,
+            status='pending_dept_head',
+            route_destination='purchasing' 
+        )
+        
+        for i in range(len(item_ids)):
+            item = get_object_or_404(InventoryItem, id=item_ids[i])
+            RequisitionItem.objects.create(
+                requisition=rf,
+                item=item,
+                quantity_requested=int(quantities[i]),
+                stock_available_at_check=True 
+            )
+        
+        rf.save()
+        messages.success(request, f"Requisition {rf_number} submitted successfully.")
+        
+        # --- FIXED REDIRECT LOGIC ---
+        # We construct the URL with a parameter so the next page knows to download the file
+        base_url = reverse('staff_my_requisitions')
+        return redirect(f"{base_url}?new_req_id={rf.id}")
+
+    items = InventoryItem.objects.all().order_by('name')
+    return render(request, 'staff/submit_requisition.html', {'inventory_items': items})
+
+# ==========================================
+# 4. MY REQUISITIONS LIST
+# ==========================================
 @login_required
 def staff_my_requisitions_view(request):
-    if request.user.role != 'staff':
-        messages.error(request, 'Access denied. Staff privileges required.')
-        return redirect('home')
+    if request.user.department == 'Requesting Party Department':
+         messages.error(request, "Access Denied: History is view-only for Sales Department.")
+         return redirect('staff_dashboard')
+
+    if request.user.department == 'Sales Department':
+        requisitions = RequisitionForm.objects.all().order_by('-date_created')
+    else:
+        requisitions = RequisitionForm.objects.filter(requester=request.user).order_by('-date_created')
+    
+    stats = {
+        'approved': requisitions.filter(status='approved').count(),
+        'pending': requisitions.filter(status__in=['pending_dept_head', 'pending_vp']).count(),
+        'closed': requisitions.filter(status='closed').count(),
+        'rejected': requisitions.filter(status='rejected').count(),
+    }
+
+    # CHECK FOR URL PARAMETER TO TRIGGER DOWNLOAD
+    auto_download_req_id = request.GET.get('new_req_id')
     
     context = {
-        'user': request.user,
-        'page_title': 'My Requisitions'
+        'requisitions': requisitions,
+        'stats': stats,
+        'auto_download_req_id': auto_download_req_id # Passes ID to template
     }
     return render(request, 'staff/my_requisitions.html', context)
+
+# ==========================================
+# 5. DOWNLOAD PDF
+# ==========================================
+@login_required
+def staff_download_req_pdf_view(request, req_id):
+    req = get_object_or_404(RequisitionForm, id=req_id)
+    
+    # Simple Permission Check
+    if req.requester != request.user and request.user.role not in ['admin', 'warehouse_manager', 'purchasing_officer', 'staff']:
+         messages.error(request, "Access denied.")
+         return redirect('home')
+
+    context = {
+        'req': req,
+        'items': req.items.all(),
+        'generated_at': timezone.now()
+    }
+    
+    template_path = 'staff/req_pdf.html'
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{req.rf_number}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+# ==========================================
+# 6. OTHER VIEWS
+# ==========================================
+@login_required
+def staff_requisition_detail_view(request, req_id):
+    if request.user.department == 'Sales Department':
+        req = get_object_or_404(RequisitionForm, id=req_id)
+    else:
+        req = get_object_or_404(RequisitionForm, id=req_id, requester=request.user)
+    
+    context = {
+        'req': req
+    }
+    return render(request, 'staff/requisition_detail.html', context)
+
+@login_required
+def staff_confirm_delivery_view(request, req_id):
+    req = get_object_or_404(RequisitionForm, id=req_id)
+    req.status = 'closed'
+    req.save()
+    InternalDelivery.objects.update_or_create(
+        requisition=req,
+        defaults={
+            'date_delivered': timezone.now(),
+            'acknowledgement_receipt_signed': True,
+            'received_by_staff_name': request.user.get_full_name()
+        }
+    )
+    messages.success(request, f"Requisition {req.rf_number} marked as DELIVERED. Recorded as Sales.")
+    return redirect('staff_requisition_detail', req_id=req.id)

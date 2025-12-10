@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #333; }
+        h1 { font-size: 16pt; color: #000; margin-bottom: 5px; }
+        h2 { font-size: 13pt; color: #000; margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        /* Stats Grid */
+        .stats-row { width: 100%; margin-bottom: 20px; }
+        .stat-box { 
+            display: inline-block; width: 23%; 
+            background-color: #f8f9fa; border: 1px solid #eee; padding: 10px; margin-right: 10px;
+        }
+        .stat-value { font-size: 14pt; font-weight: bold; color: #000; }
+        .stat-label { font-size: 8pt; color: #666; text-transform: uppercase; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; background-color: #f0f0f0; padding: 8px; font-weight: bold; border-bottom: 1px solid #000; font-size: 9pt; }
+        td { padding: 8px; border-bottom: 1px solid #eee; font-size: 9pt; vertical-align: top; }
+        
+        /* Specific Colors */
+        .danger { color: #d63031; font-weight: bold; }
+        .success { color: #00b894; }
+        .warning { color: #fdcb6e; }
+    </style>
+</head>
+<body>
+    <h1>WAREHOUSE INVENTORY REPORT</h1>
+    <div style="font-size: 9pt; color: #666; margin-bottom: 20px;">
+        Generated on: {{ generated_at|date:"F d, Y H:i" }}<br>
+        Manager: {{ user.get_full_name|default:user.username }}
+    </div>
+
+    <table class="stats-row">
+        <tr>
+            <td width="25%" style="background-color: #e3f2fd; border: 1px solid #74b9ff; padding: 10px;">
+                <div class="stat-value">{{ current_stock_levels.total_items }}</div>
+                <div class="stat-label">Total Items</div>
+            </td>
+            <td width="25%" style="background-color: #e6fffa; border: 1px solid #55efc4; padding: 10px;">
+                <div class="stat-value">{{ current_stock_levels.in_stock }}</div>
+                <div class="stat-label">In Stock</div>
+            </td>
+            <td width="25%" style="background-color: #fff9db; border: 1px solid #ffeaa7; padding: 10px;">
+                <div class="stat-value">{{ current_stock_levels.low_stock }}</div>
+                <div class="stat-label">Low Stock</div>
+            </td>
+            <td width="25%" style="background-color: #ffebee; border: 1px solid #ff8e8e; padding: 10px;">
+                <div class="stat-value">{{ current_stock_levels.out_of_stock }}</div>
+                <div class="stat-label">Out of Stock</div>
+            </td>
+        </tr>
+    </table>
+
+    <h2>LOW STOCK ALERTS (Critical)</h2>
+    {% if low_stock_items %}
+    <table>
+        <thead>
+            <tr>
+                <th width="40%">Item Name</th>
+                <th width="20%">SKU</th>
+                <th width="20%">Current Qty</th>
+                <th width="20%">Reorder Point</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in low_stock_items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.sku }}</td>
+                <td class="danger">{{ item.quantity }}</td>
+                <td>{{ item.reorder_point }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #00b894;">All stock levels are currently healthy.</p>
+    {% endif %}
+
+    <h2>RECENT STOCK MOVEMENTS</h2>
+    <table>
+        <thead>
+            <tr>
+                <th width="25%">Item SKU</th>
+                <th width="25%">Action Type</th>
+                <th width="15%">Change</th>
+                <th width="35%">Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in recent_activity %}
+            <tr>
+                <td>{{ activity.item.sku }}</td>
+                <td>{{ activity.get_adjustment_type_display }}</td>
+                <td>
+                    {% if activity.quantity_change > 0 %}+{% endif %}{{ activity.quantity_change }}
+                </td>
+                <td>{{ activity.timestamp|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No recent activity recorded.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footerContent">
+        <div style="text-align: center; color: #888; font-size: 8pt; border-top: 1px solid #ddd; padding-top: 5px;">
+            Warehouse Management System Report | Page <pdf:pagenumber>
+        </div>
+    </div>
+</body>
+</html>

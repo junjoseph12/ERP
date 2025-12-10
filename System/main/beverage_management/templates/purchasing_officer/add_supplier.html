@@ -1,371 +1,52 @@
 {% extends 'base.html' %}
 
-{% block title %}Add New Supplier - Beverage ERP{% endblock %}
+{% block title %}Add Supplier - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>ADD NEW SUPPLIER</h1>
-        <p style="color: #666; margin-top: 10px;">Register a new supplier in the system</p>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'purchasing_suppliers' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-arrow-left"></i> CANCEL
-        </a>
-        <button type="submit" form="supplierForm" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-save"></i> SAVE SUPPLIER
-        </button>
+    <div>
+        <a href="{% url 'purchasing_suppliers' %}" class="btn btn-secondary">CANCEL</a>
     </div>
 </div>
 
-<form id="supplierForm" method="POST">
-    {% csrf_token %}
-    
-    <!-- Basic Information -->
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <i class="fas fa-building" style="margin-right: 10px;"></i> BASIC INFORMATION
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <!-- Left Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">COMPANY NAME *</label>
-                        <input type="text" class="form-control" name="name" placeholder="e.g., Beverage Supply Co." required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">SUPPLIER TYPE *</label>
-                        <select class="form-control" name="supplier_type" required>
-                            <option value="">-- Select Type --</option>
-                            {% for type in supplier_types %}
-                            <option value="{{ type.value }}">{{ type.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">TAX ID / VAT NUMBER</label>
-                        <input type="text" class="form-control" name="tax_id" placeholder="e.g., 12-3456789">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">WEBSITE</label>
-                        <input type="url" class="form-control" name="website" placeholder="https://www.example.com">
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">CONTACT PERSON *</label>
-                        <input type="text" class="form-control" name="contact_person" placeholder="e.g., John Smith" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">JOB TITLE</label>
-                        <input type="text" class="form-control" name="job_title" placeholder="e.g., Sales Manager">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">COMPANY SIZE</label>
-                        <select class="form-control" name="company_size">
-                            <option value="">-- Select Size --</option>
-                            <option value="small">Small (1-50 employees)</option>
-                            <option value="medium">Medium (51-200 employees)</option>
-                            <option value="large">Large (201+ employees)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">YEARS IN BUSINESS</label>
-                        <input type="number" class="form-control" name="years_in_business" placeholder="e.g., 10" min="0">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Contact Information -->
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <i class="fas fa-address-card" style="margin-right: 10px;"></i> CONTACT INFORMATION
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <!-- Left Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">EMAIL ADDRESS *</label>
-                        <input type="email" class="form-control" name="email" placeholder="contact@company.com" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">PHONE NUMBER *</label>
-                        <input type="tel" class="form-control" name="phone" placeholder="(555) 123-4567" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">FAX NUMBER</label>
-                        <input type="tel" class="form-control" name="fax" placeholder="(555) 123-4568">
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">ADDRESS *</label>
-                        <textarea class="form-control" name="address" rows="2" placeholder="Street Address" required></textarea>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group">
-                            <label class="form-label">CITY *</label>
-                            <input type="text" class="form-control" name="city" placeholder="City" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">STATE / PROVINCE</label>
-                            <input type="text" class="form-control" name="state" placeholder="State">
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group">
-                            <label class="form-label">POSTAL CODE *</label>
-                            <input type="text" class="form-control" name="postal_code" placeholder="ZIP / Postal Code" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">COUNTRY *</label>
-                            <select class="form-control" name="country" required>
-                                <option value="">-- Select Country --</option>
-                                {% for country in countries %}
-                                <option value="{{ country }}">{{ country }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Product Categories -->
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <i class="fas fa-tags" style="margin-right: 10px;"></i> PRODUCT CATEGORIES
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label class="form-label">SELECT CATEGORIES *</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
-                    {% for category in supplier_categories %}
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="cat_{{ forloop.counter }}" name="categories" value="{{ category }}">
-                        <label for="cat_{{ forloop.counter }}" style="font-size: 14px;">{{ category }}</label>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">ADDITIONAL CATEGORIES</label>
-                <input type="text" class="form-control" name="additional_categories" placeholder="Enter any additional categories, separated by commas">
-            </div>
-        </div>
-    </div>
-    
-    <!-- Terms and Conditions -->
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <i class="fas fa-file-contract" style="margin-right: 10px;"></i> TERMS & CONDITIONS
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <!-- Left Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">PAYMENT TERMS *</label>
-                        <select class="form-control" name="payment_terms" required>
-                            <option value="">-- Select Payment Terms --</option>
-                            {% for term in payment_terms %}
-                            <option value="{{ term.value }}">{{ term.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">MINIMUM ORDER VALUE</label>
-                        <div style="display: flex; align-items: center;">
-                            <span style="margin-right: 5px;">$</span>
-                            <input type="number" class="form-control" name="minimum_order" placeholder="0.00" min="0" step="0.01">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">LEAD TIME (DAYS)</label>
-                        <input type="number" class="form-control" name="lead_time" placeholder="e.g., 5" min="1">
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">DELIVERY TERMS</label>
-                        <select class="form-control" name="delivery_terms">
-                            <option value="">-- Select Delivery Terms --</option>
-                            <option value="fob">FOB (Free on Board)</option>
-                            <option value="cif">CIF (Cost, Insurance & Freight)</option>
-                            <option value="exw">EXW (Ex Works)</option>
-                            <option value="ddp">DDP (Delivered Duty Paid)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">RETURN POLICY</label>
-                        <textarea class="form-control" name="return_policy" rows="2" placeholder="Describe return policy..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">WARRANTY TERMS</label>
-                        <textarea class="form-control" name="warranty" rows="2" placeholder="Describe warranty terms..."></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Documents and References -->
-    <div class="card" style="margin-bottom: 40px;">
-        <div class="card-header">
-            <i class="fas fa-file-upload" style="margin-right: 10px;"></i> DOCUMENTS & REFERENCES
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <!-- Left Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">CERTIFICATIONS</label>
-                        <textarea class="form-control" name="certifications" rows="3" placeholder="List any certifications (e.g., ISO 9001, FDA Approved)..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">BANK REFERENCES</label>
-                        <textarea class="form-control" name="bank_references" rows="2" placeholder="Bank name and account details..."></textarea>
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">TRADE REFERENCES</label>
-                        <textarea class="form-control" name="trade_references" rows="3" placeholder="List other companies that can provide references..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">NOTES</label>
-                        <textarea class="form-control" name="notes" rows="2" placeholder="Any additional notes..."></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Status and Approval -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-user-check" style="margin-right: 10px;"></i> STATUS & APPROVAL
-        </div>
-        <div class="card-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <!-- Left Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">INITIAL STATUS *</label>
-                        <select class="form-control" name="status" required>
-                            <option value="active">Active</option>
-                            <option value="pending">Pending Review</option>
-                            <option value="trial">Trial Period</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">PREFERRED STATUS</label>
-                        <select class="form-control" name="preferred_status">
-                            <option value="">-- Select Preferred Status --</option>
-                            <option value="preferred">Preferred Supplier</option>
-                            <option value="standard">Standard Supplier</option>
-                            <option value="backup">Backup Supplier</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div>
-                    <div class="form-group">
-                        <label class="form-label">ASSIGNED PURCHASING OFFICER</label>
-                        <input type="text" class="form-control" value="{{ user.get_full_name }}" readonly style="background: #f8f9fa;">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">REQUIRES APPROVAL FROM</label>
-                        <select class="form-control" name="approver">
-                            <option value="">-- Select Approver --</option>
-                            <option value="purchasing_manager">Purchasing Manager</option>
-                            <option value="finance_director">Finance Director</option>
-                            <option value="vp_operations">VP of Operations</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
-
-<!-- Supplier Registration Guidelines -->
-<div class="card" style="margin-top: 40px;">
-    <div class="card-header">
-        <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> SUPPLIER REGISTRATION GUIDELINES
-    </div>
+<div class="card" style="max-width: 800px; margin: 0 auto;">
     <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">REQUIRED DOCUMENTS</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Business Registration Certificate</li>
-                    <li>Tax Identification Number</li>
-                    <li>Bank Account Details</li>
-                    <li>Insurance Certificates</li>
-                    <li>Quality Certifications</li>
-                </ul>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: grid; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Company Name</label>
+                    {{ form.name }}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Contact Person</label>
+                        {{ form.contact_person }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        {{ form.phone }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    {{ form.email }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    {{ form.address }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Active Status</label>
+                    {{ form.is_active }}
+                </div>
+                
+                <button type="submit" class="btn" style="margin-top: 20px;">SAVE SUPPLIER</button>
             </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">APPROVAL PROCESS</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Initial information verification</li>
-                    <li>Credit check and financial review</li>
-                    <li>Quality assessment</li>
-                    <li>Management approval</li>
-                    <li>Contract signing</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">EVALUATION CRITERIA</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Financial stability</li>
-                    <li>Product quality</li>
-                    <li>Delivery reliability</li>
-                    <li>Pricing competitiveness</li>
-                    <li>Customer service</li>
-                </ul>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 {% endblock %}

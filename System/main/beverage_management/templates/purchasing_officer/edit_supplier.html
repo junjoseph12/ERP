@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Supplier - Purchasing{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+        <div>
+            <h1>EDIT SUPPLIER</h1>
+            <p style="color: #666; margin-top: 10px;">Update credentials for {{ supplier.name }}</p>
+        </div>
+        <a href="{% url 'purchasing_suppliers' %}" class="btn" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> BACK TO LIST
+        </a>
+    </div>
+
+    <div class="card" style="border: 1px solid #eee;">
+        <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+            SUPPLIER DETAILS
+        </div>
+        <div class="card-body" style="padding: 30px;">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Supplier Name</label>
+                    <input type="text" name="name" value="{{ form.name.value|default:supplier.name }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Contact Person</label>
+                        <input type="text" name="contact_person" value="{{ form.contact_person.value|default:supplier.contact_person }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Phone Number</label>
+                        <input type="text" name="phone" value="{{ form.phone.value|default:supplier.phone }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Email Address</label>
+                    <input type="email" name="email" value="{{ form.email.value|default:supplier.email }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Address</label>
+                    <textarea name="address" rows="3" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px; font-family: inherit;">{{ form.address.value|default:supplier.address }}</textarea>
+                </div>
+                
+                <div style="margin-bottom: 25px; padding: 20px; background: #f9f9f9; border: 1px solid #eee;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="is_active" {% if supplier.is_active %}checked{% endif %} style="margin-right: 10px;">
+                        <span style="font-size: 13px; font-weight: 600;">Active Supplier (Available for POs)</span>
+                    </label>
+                </div>
+
+                <div style="padding-top: 20px; border-top: 1px solid #eee;">
+                    <button type="submit" class="btn" style="padding: 12px 24px; font-size: 13px; font-weight: 600; background: #000; border: 1px solid #000; color: white; cursor: pointer; width: 100%;">
+                        SAVE CHANGES
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

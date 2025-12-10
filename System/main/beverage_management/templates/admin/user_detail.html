@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}User Details - Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+        <div>
+            <h1>USER PROFILE</h1>
+            <p style="color: #666; margin-top: 10px;">Manage access and permissions for {{ user_detail.get_full_name }}</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="openEditModal()" class="btn" style="padding: 12px 24px; font-size: 13px; font-weight: 600; background: #0984e3; border: 1px solid #0984e3; color: white; cursor: pointer;">
+                <i class="fas fa-edit" style="margin-right: 5px;"></i> EDIT DETAILS
+            </button>
+            <a href="{% url 'admin_users' %}" class="btn" style="padding: 12px 24px; font-size: 13px; font-weight: 600; background: transparent; border: 1px solid #000; color: #000; text-decoration: none;">
+                <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> BACK TO USERS
+            </a>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        <div class="card" style="border: 1px solid #eee;">
+            <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                ACCOUNT INFORMATION
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">Full Name</label>
+                        <div style="font-size: 16px; font-weight: 700; color: #000;">{{ user_detail.get_full_name|default:"-" }}</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">Email Address</label>
+                        <div style="font-size: 16px; font-weight: 700; color: #000;">{{ user_detail.email }}</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">User ID</label>
+                        <div style="font-size: 16px; font-weight: 700; color: #000; font-family: monospace;">#{{ user_detail.id }}</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">Username</label>
+                        <div style="font-size: 16px; font-weight: 700; color: #000; font-family: monospace;">@{{ user_detail.username }}</div>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">Department</label>
+                            <div style="font-size: 16px; font-weight: 700; color: #000;">{{ user_detail.department|default:"Not assigned" }}</div>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
+                            <div style="font-size: 16px; font-weight: 700; color: #000;">{{ user_detail.phone|default:"Not provided" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card" style="border: 1px solid #eee;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    ACCOUNT STATUS
+                </div>
+                <div class="card-body" style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 20px;">
+                        {% if user_detail.status == 'approved' %}
+                        <span style="padding: 5px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                            <i class="fas fa-check" style="margin-right: 4px;"></i> APPROVED
+                        </span>
+                        {% elif user_detail.status == 'pending' %}
+                        <span style="padding: 5px 12px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                            <i class="fas fa-clock" style="margin-right: 4px;"></i> PENDING
+                        </span>
+                        {% elif user_detail.status == 'rejected' %}
+                        <span style="padding: 5px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                            <i class="fas fa-times" style="margin-right: 4px;"></i> REJECTED
+                        </span>
+                        {% elif user_detail.status == 'suspended' %}
+                        <span style="padding: 5px 12px; background: #636e72; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                            <i class="fas fa-ban" style="margin-right: 4px;"></i> SUSPENDED
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        Joined: {{ user_detail.date_joined|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border: 1px solid #eee;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    SYSTEM ROLE
+                </div>
+                <div class="card-body" style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 10px;">
+                        <span style="padding: 5px 12px; background: 
+                            {% if user_detail.role == 'admin' %}#000
+                            {% elif user_detail.role == 'warehouse_manager' %}#0984e3
+                            {% elif user_detail.role == 'purchasing_officer' %}#00b894
+                            {% else %}#636e72{% endif %}; 
+                            color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block;">
+                            {{ user_detail.get_role_display|upper }}
+                        </span>
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        {{ user_detail.department|default:"No department" }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border: 1px solid #eee;">
+                <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+                    LAST ACTIVE
+                </div>
+                <div class="card-body" style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 10px;">
+                        <i class="fas fa-clock" style="color: #0984e3; font-size: 24px; margin-bottom: 10px;"></i>
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        {% if user_detail.last_login %}
+                            {{ user_detail.last_login|date:"M d, Y h:i A" }}
+                        {% else %}
+                            Never logged in
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Edit User Modal -->
+<div id="editUserModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fff; margin: 50px auto; width: 90%; max-width: 600px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative;">
+        
+        <!-- Modal Header -->
+        <div style="padding: 20px; background: #000; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 30px; height: 30px; background: #0984e3; color: white; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Edit User: {{ user_detail.username }}</h2>
+            </div>
+            <span onclick="closeEditModal()" style="color: white; font-size: 24px; font-weight: bold; cursor: pointer; padding: 0 10px;">&times;</span>
+        </div>
+
+        <!-- Modal Body -->
+        <form method="POST" action="{% url 'admin_edit_user' user_detail.id %}" style="padding: 30px;">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 25px;">
+                <div style="font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                    BASIC INFORMATION
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">First Name</label>
+                        <input type="text" name="first_name" value="{{ user_detail.first_name }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user_detail.last_name }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Email Address</label>
+                    <input type="email" name="email" value="{{ user_detail.email }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Phone Number</label>
+                        <input type="text" name="phone" value="{{ user_detail.phone|default:'' }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px;" placeholder="+1 (555) 123-4567">
+                    </div>
+                    <div>
+                        <label>Department</label>
+                        <input type="text" name="department" value="Sales" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <div style="font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                    SYSTEM PERMISSIONS
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label>Role</label>
+                    <input type="text" name="role" value="Manager" disabled>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #000;">Account Status</label>
+                    <select name="status" style="width: 100%; padding: 12px; border: 1px solid #ddd; font-size: 13px; background: white;">
+                        <option value="pending" {% if user_detail.status == 'pending' %}selected{% endif %}>Pending Approval</option>
+                        <option value="approved" {% if user_detail.status == 'approved' %}selected{% endif %}>Approved (Active)</option>
+                        <option value="rejected" {% if user_detail.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="suspended" {% if user_detail.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 20px; border-top: 1px solid #eee;">
+                <button type="button" onclick="closeEditModal()" class="btn" style="padding: 12px 24px; font-size: 13px; font-weight: 600; background: transparent; border: 1px solid #000; color: #000; cursor: pointer;">
+                    CANCEL
+                </button>
+                <button type="submit" class="btn" style="padding: 12px 24px; font-size: 13px; font-weight: 600; background: #000; border: 1px solid #000; color: white; cursor: pointer;">
+                    <i class="fas fa-save" style="margin-right: 5px;"></i> SAVE CHANGES
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal() {
+        document.getElementById("editUserModal").style.display = "block";
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+
+    function closeEditModal() {
+        document.getElementById("editUserModal").style.display = "none";
+        document.body.style.overflow = 'auto'; // Re-enable scrolling
+    }
+    
+    // Close modal if user clicks outside of it
+    window.onclick = function(event) {
+        var modal = document.getElementById("editUserModal");
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeEditModal();
+        }
+    });
+
+    // Focus on first input when modal opens
+    function focusFirstInput() {
+        const modal = document.getElementById("editUserModal");
+        if (modal.style.display === "block") {
+            const firstInput = modal.querySelector('input[name="first_name"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }
+    }
+    
+    // Call focus after modal opens
+    setTimeout(focusFirstInput, 100);
+</script>
+{% endblock %}

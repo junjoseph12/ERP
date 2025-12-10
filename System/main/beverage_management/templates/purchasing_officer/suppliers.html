@@ -1,373 +1,82 @@
 {% extends 'base.html' %}
 
-{% block title %}Supplier Management - Beverage ERP{% endblock %}
+{% block title %}Suppliers - Beverage ERP{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
     <div>
         <h1>SUPPLIER MANAGEMENT</h1>
-        <p style="color: #666; margin-top: 10px;">Manage supplier information, performance tracking, and communications</p>
+        <p style="color: #666; margin-top: 10px;">Manage vendor relationships.</p>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="{% url 'purchasing_dashboard' %}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-arrow-left"></i> BACK TO DASHBOARD
+    <div>
+        <a href="{% url 'purchasing_dashboard' %}" class="btn" style="padding: 12px 24px; font-size: 13px; border: 1px solid #000; background: transparent; color: #000; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> BACK TO DASHBOARD
         </a>
-        <a href="{% url 'purchasing_add_supplier' %}" class="btn" style="padding: 12px 24px; font-size: 13px;">
-            <i class="fas fa-plus-circle"></i> ADD SUPPLIER
+        <a href="{% url 'purchasing_add_supplier' %}" class="btn" style="padding: 12px 24px; font-size: 13px; background: #000; border: 1px solid #000; color: white; text-decoration: none;">
+            <i class="fas fa-plus-circle" style="margin-right: 5px;"></i> ADD SUPPLIER
         </a>
     </div>
 </div>
 
-<!-- Supplier Stats -->
-<div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
-            <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-value">8</div>
-        <div class="stat-label">Preferred</div>
+<div class="card" style="border: 1px solid #eee;">
+    <div class="card-header" style="border-bottom: 1px solid #eee; padding: 20px; font-weight: 600; font-size: 14px;">
+        <i class="fas fa-handshake" style="margin-right: 10px;"></i> SUPPLIERS DIRECTORY
     </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-value">15</div>
-        <div class="stat-label">Active</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <div class="stat-value">2</div>
-        <div class="stat-label">On Probation</div>
-    </div>
-    
-    <div class="card stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
-            <i class="fas fa-times-circle"></i>
-        </div>
-        <div class="stat-value">1</div>
-        <div class="stat-label">Inactive</div>
-    </div>
-</div>
-
-<!-- Supplier Management Tabs -->
-<div class="card" style="margin-bottom: 30px;">
-    <div class="card-header" style="border-bottom: none;">
-        <div style="display: flex; gap: 0; border-bottom: 1px solid #eee;">
-            <button style="padding: 15px 30px; background: #000; color: white; border: none; font-weight: 600; font-size: 14px;">ALL SUPPLIERS</button>
-            <button style="padding: 15px 30px; background: transparent; color: #666; border: none; font-weight: 600; font-size: 14px;">PREFERRED</button>
-            <button style="padding: 15px 30px; background: transparent; color: #666; border: none; font-weight: 600; font-size: 14px;">BY CATEGORY</button>
-            <button style="padding: 15px 30px; background: transparent; color: #666; border: none; font-weight: 600; font-size: 14px;">PERFORMANCE</button>
-        </div>
-    </div>
-    <div class="card-body">
-        <!-- Search and Filter -->
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-            <div>
-                <div class="form-label">SEARCH SUPPLIERS</div>
-                <div style="position: relative;">
-                    <input type="text" class="form-control" placeholder="Search by name, contact, or products..." style="padding-left: 45px;">
-                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666;"></i>
-                </div>
-            </div>
-            
-            <div>
-                <div class="form-label">STATUS</div>
-                <select class="form-control">
-                    <option value="">All Status</option>
-                    <option value="preferred">Preferred</option>
-                    <option value="active">Active</option>
-                    <option value="probation">On Probation</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-            
-            <div>
-                <div class="form-label">RATING</div>
-                <select class="form-control">
-                    <option value="">All Ratings</option>
-                    <option value="excellent">Excellent (≥95%)</option>
-                    <option value="good">Good (85-94%)</option>
-                    <option value="average">Average (70-84%)</option>
-                    <option value="poor">Poor (<70%)</option>
-                </select>
-            </div>
-        </div>
-        
-        <!-- Supplier Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
-            <!-- Supplier Card 1 -->
-            <div class="card" style="border: 1px solid #eee; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 18px; margin-bottom: 5px;">Beverage Supply Co.</div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="padding: 4px 10px; background: #00b894; color: white; font-size: 11px; font-weight: 600;">PREFERRED</span>
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">EXCELLENT</span>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 600; color: #00b894; font-size: 24px;">98%</div>
-                        <div style="font-size: 12px; color: #666;">On-time Rate</div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">CONTACT</div>
-                    <div style="font-weight: 600; font-size: 14px;">John Smith</div>
-                    <div style="font-size: 13px; color: #666;">(555) 123-4567 • john@beveragesupply.com</div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">PRODUCT CATEGORIES</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <span style="padding: 4px 10px; background: #e3f2fd; color: #1976d2; font-size: 12px;">Soft Drinks</span>
-                        <span style="padding: 4px 10px; background: #fff3cd; color: #856404; font-size: 12px;">Energy Drinks</span>
-                        <span style="padding: 4px 10px; background: #d4edda; color: #155724; font-size: 12px;">Bottled Water</span>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Last Order</div>
-                        <div style="font-weight: 600; font-size: 13px;">Jan 10, 2024</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Total Orders</div>
-                        <div style="font-weight: 600; font-size: 13px;">45</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Avg. Delivery</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00b894;">2.1 days</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quality Score</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00b894;">4.8/5.0</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-eye"></i> VIEW DETAILS
-                    </button>
-                    <button class="btn btn-secondary" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-edit"></i> EDIT
-                    </button>
-                    <button style="padding: 10px 16px; background: #0984e3; color: white; border: none; font-size: 12px; cursor: pointer;">
-                        <i class="fas fa-envelope"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Supplier Card 2 -->
-            <div class="card" style="border: 1px solid #eee; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 18px; margin-bottom: 5px;">Drinks Distributors</div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">ACTIVE</span>
-                            <span style="padding: 4px 10px; background: #0984e3; color: white; font-size: 11px; font-weight: 600;">GOOD</span>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 600; color: #0984e3; font-size: 24px;">92%</div>
-                        <div style="font-size: 12px; color: #666;">On-time Rate</div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">CONTACT</div>
-                    <div style="font-weight: 600; font-size: 14px;">Sarah Johnson</div>
-                    <div style="font-size: 13px; color: #666;">(555) 987-6543 • sarah@drinksdist.com</div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">PRODUCT CATEGORIES</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <span style="padding: 4px 10px; background: #f3e5f5; color: #7b1fa2; font-size: 12px;">Juices</span>
-                        <span style="padding: 4px 10px; background: #e0f2f1; color: #00695c; font-size: 12px;">Sports Drinks</span>
-                        <span style="padding: 4px 10px; background: #fce4ec; color: #880e4f; font-size: 12px;">Flavored Water</span>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Last Order</div>
-                        <div style="font-weight: 600; font-size: 13px;">Jan 12, 2024</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Total Orders</div>
-                        <div style="font-weight: 600; font-size: 13px;">32</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Avg. Delivery</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00b894;">2.5 days</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quality Score</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #0984e3;">4.5/5.0</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-eye"></i> VIEW DETAILS
-                    </button>
-                    <button class="btn btn-secondary" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-edit"></i> EDIT
-                    </button>
-                    <button style="padding: 10px 16px; background: #0984e3; color: white; border: none; font-size: 12px; cursor: pointer;">
-                        <i class="fas fa-envelope"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Supplier Card 3 -->
-            <div class="card" style="border: 1px solid #eee; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 18px; margin-bottom: 5px;">Refreshment Wholesale</div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">PROBATION</span>
-                            <span style="padding: 4px 10px; background: #fdcb6e; color: #000; font-size: 11px; font-weight: 600;">AVERAGE</span>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 600; color: #ff6b6b; font-size: 24px;">78%</div>
-                        <div style="font-size: 12px; color: #666;">On-time Rate</div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">CONTACT</div>
-                    <div style="font-weight: 600; font-size: 14px;">Mike Wilson</div>
-                    <div style="font-size: 13px; color: #666;">(555) 456-7890 • mike@refreshwholesale.com</div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #666; margin-bottom: 5px;">PRODUCT CATEGORIES</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <span style="padding: 4px 10px; background: #fff3cd; color: #856404; font-size: 12px;">Alcoholic Beverages</span>
-                        <span style="padding: 4px 10px; background: #e8f5e9; color: #388e3c; font-size: 12px;">Mixers</span>
-                        <span style="padding: 4px 10px; background: #f3e5f5; color: #7b1fa2; font-size: 12px;">Specialty Drinks</span>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Last Order</div>
-                        <div style="font-weight: 600; font-size: 13px;">Jan 5, 2024</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Total Orders</div>
-                        <div style="font-weight: 600; font-size: 13px;">18</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Avg. Delivery</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #ff6b6b;">3.8 days</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: #666;">Quality Score</div>
-                        <div style="font-weight: 600; font-size: 13px; color: #fdcb6e;">3.2/5.0</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-eye"></i> VIEW DETAILS
-                    </button>
-                    <button class="btn btn-secondary" style="padding: 10px 16px; font-size: 12px; flex: 1;">
-                        <i class="fas fa-edit"></i> EDIT
-                    </button>
-                    <button style="padding: 10px 16px; background: #0984e3; color: white; border: none; font-size: 12px; cursor: pointer;">
-                        <i class="fas fa-envelope"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Performance Metrics -->
-<div class="card" style="margin-top: 40px;">
-    <div class="card-header">
-        <i class="fas fa-chart-line" style="margin-right: 10px;"></i> SUPPLIER PERFORMANCE METRICS
-    </div>
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div style="text-align: center;">
-                <div style="font-size: 36px; font-weight: 800; color: #00b894;">94.5%</div>
-                <div style="font-size: 14px; color: #666;">Average On-time Delivery</div>
-            </div>
-            
-            <div style="text-align: center;">
-                <div style="font-size: 36px; font-weight: 800; color: #0984e3;">4.6/5.0</div>
-                <div style="font-size: 14px; color: #666;">Average Quality Rating</div>
-            </div>
-            
-            <div style="text-align: center;">
-                <div style="font-size: 36px; font-weight: 800; color: #fdcb6e;">2.7 days</div>
-                <div style="font-size: 14px; color: #666;">Average Delivery Time</div>
-            </div>
-            
-            <div style="text-align: center;">
-                <div style="font-size: 36px; font-weight: 800; color: #6c5ce7;">$125K</div>
-                <div style="font-size: 14px; color: #666;">Monthly Spend</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Supplier Evaluation Criteria -->
-<div class="card" style="margin-top: 30px;">
-    <div class="card-header">
-        <i class="fas fa-clipboard-check" style="margin-right: 10px;"></i> SUPPLIER EVALUATION CRITERIA
-    </div>
-    <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">DELIVERY PERFORMANCE</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>On-time delivery rate</li>
-                    <li>Delivery time consistency</li>
-                    <li>Order completeness</li>
-                    <li>Damage rate</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">QUALITY STANDARDS</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Product quality consistency</li>
-                    <li>Expiry date compliance</li>
-                    <li>Packaging quality</li>
-                    <li>Specification adherence</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">PRICING & TERMS</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Competitive pricing</li>
-                    <li>Payment terms flexibility</li>
-                    <li>Volume discounts</li>
-                    <li>Return policy</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 style="font-size: 14px; margin-bottom: 10px; color: #000;">COMMUNICATION & SERVICE</h4>
-                <ul style="color: #666; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
-                    <li>Responsiveness</li>
-                    <li>Order tracking updates</li>
-                    <li>Issue resolution time</li>
-                    <li>Customer support quality</li>
-                </ul>
-            </div>
+    <div class="card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 25%;">NAME</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 25%;">CONTACT PERSON</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 20%;">EMAIL</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">PHONE</th>
+                        <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 15%;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 700; font-size: 14px; color: #000;">
+                            {{ supplier.name }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-weight: 600; font-size: 13px; color: #000;">
+                            {{ supplier.contact_person }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000;">
+                            {{ supplier.email }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle; font-size: 13px; color: #000; font-family: monospace;">
+                            {{ supplier.phone }}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                            {% if supplier.is_active %}
+                            <span style="padding: 5px 12px; background: #00b894; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                                ACTIVE
+                            </span>
+                            {% else %}
+                            <span style="padding: 5px 12px; background: #ff6b6b; color: white; font-size: 11px; font-weight: 600; border: none; display: inline-block; letter-spacing: 0.3px;">
+                                INACTIVE
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 16px 12px; text-align: left; vertical-align: middle;">
+                             <a href="{% url 'purchasing_edit_supplier' supplier.id %}" class="btn" style="padding: 6px 14px; font-size: 11px; background: transparent; border: 1px solid #000; color: #000; text-decoration: none;">
+                                <i class="fas fa-edit" style="margin-right: 4px;"></i> EDIT
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 60px; color: #888;">
+                            <i class="fas fa-handshake" style="font-size: 32px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; margin-bottom: 8px;">No suppliers found</div>
+                            <div style="font-size: 12px; color: #aaa;">Add your first supplier to get started</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
